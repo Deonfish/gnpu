@@ -1,0 +1,18 @@
+module sarray(
+	input  [0:0] post_storec_valid_i,
+	input  [0:0] left_in_valid_i,
+	input  [0:0] left_in_a_tag_i,
+	input  [0:0] left_in_c_tag_i,
+	input  [5:0] left_in_cnt_i,
+	input  [2047:0] left_in_data_i,
+	input  [0:0] top_in_valid_i,
+	input  [0:0] top_in_acc_i,
+	input  [2:0] top_in_precision_i,
+	input  [7:0] top_in_cnt_i,
+	input  [2047:0] top_in_data_i,
+	output [0:0] bot_o_valid_o,
+	output [5:0] bot_o_cnt_o,
+	output [2047:0] bot_o_data_o
+);
+
+endmodule

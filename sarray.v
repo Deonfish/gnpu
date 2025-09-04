@@ -1,4 +1,6 @@
 module sarray(
+	input								clk,
+	input								rst_n,
 	input  [0:0] 						post_storec_valid_i,
 	input  [0:0] 						left_in_valid_i,
 	input  [0:0] 						left_in_a_tag_i,

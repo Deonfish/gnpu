@@ -50,6 +50,13 @@ module sarray_top(
 	wire [`TMMA_CNT_WIDTH-1:0] 			bot_o_cnt;
 	wire [`SARRAY_STORE_WIDTH-1:0] 		bot_o_data;
 
+	wire [0:0] 					  		wr_a_buf_valid;
+	wire [0:0] 					  		wr_a_buf_id;
+	wire [0:0] 					  		wr_a_buf_data;
+	wire [0:0] 					  		rd_a_buf_valid;
+	wire [0:0] 					  		rd_a_buf_id;
+	wire [0:0] 					  		rd_a_buf_ret_valid;
+	wire [`SARRAY_LOAD_WIDTH-1:0] 		rd_a_buf_ret_data;
 
 	always @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
@@ -113,7 +120,9 @@ module sarray_top(
 
 	assign ar_cnt_incr = sarray_ar_valid_o & sarray_ar_ready_i;
 
-	sarray u_sarray(
+	sarray u_sarray (
+		.clk				 (clk)
+		.rst_n				 (rst_n)
 		.post_storec_valid_i (post_storec_valid),
 		.left_in_valid_i	 (left_in_valid),
 		.left_in_a_tag_i	 (left_in_a_tag),
@@ -128,6 +137,18 @@ module sarray_top(
 		.bot_o_valid_o		 (bot_o_valid),
 		.bot_o_cnt_o		 (bot_o_cnt),
 		.bot_o_data_o		 (bot_o_data)
+	);
+
+	a_buf u_a_buf (
+		.clk					(clk),
+		.rst_n					(rst_n),
+		.wr_a_buf_valid_i		(wr_a_buf_valid),
+		.wr_a_buf_id_i			(wr_a_buf_id),
+		.wr_a_buf_data_i		(wr_a_buf_data),
+		.rd_a_buf_valid_i		(rd_a_buf_valid),
+		.rd_a_buf_id_i			(rd_a_buf_id),
+		.rd_a_buf_ret_valid_o	(rd_a_buf_ret_valid),
+		.rd_a_buf_ret_data_o	(rd_a_buf_ret_data)
 	);
 
 

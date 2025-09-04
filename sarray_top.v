@@ -39,6 +39,7 @@ module sarray_top(
 	wire [0:0]							tinst_tmma_valid;
 	wire [0:0]							tinst_preloada_valid;
 	wire [0:0]							sarray_ar_hsk;
+	wire [0:0]							sarray_r_hsk;
 
 	wire [0:0] 							post_storec_valid;
 	wire [0:0] 							left_in_valid;
@@ -55,11 +56,14 @@ module sarray_top(
 	wire [`TMMA_CNT_WIDTH-1:0] 			bot_o_cnt;
 	wire [`SARRAY_STORE_WIDTH-1:0] 		bot_o_data;
 
+	reg  [0:0]							wr_a_buf_id_r;
 	wire [0:0] 					  		wr_a_buf_valid;
 	wire [0:0] 					  		wr_a_buf_id;
+	wire [``TMMA_CNT_WIDTH-1:0]			wr_a_buf_addr;
 	wire [0:0] 					  		wr_a_buf_data;
 	wire [0:0] 					  		rd_a_buf_valid;
 	wire [0:0] 					  		rd_a_buf_id;
+	wire [``TMMA_CNT_WIDTH-1:0]			rd_a_buf_addr;
 	wire [0:0] 					  		rd_a_buf_ret_valid;
 	wire [`SARRAY_LOAD_WIDTH-1:0] 		rd_a_buf_ret_data;
 
@@ -90,9 +94,10 @@ module sarray_top(
 			tmma_src_addr1_r  <= issue_tinst_addr1_i;
 		end
 		else if(push_preloada_valid) begin
-			tinst_valid_r 	  <= 1'b1;
-			tinst_type_r  	  <= issue_tinst_type_i;
+			tinst_valid_r 	  	  <= 1'b1;
+			tinst_type_r  	  	  <= issue_tinst_type_i;
 			preloada_src_addr0_r  <= issue_tinst_addr0_i;
+			wr_a_buf_id_r 		  <= ~wr_a_buf_id_r;
 		end
 		else if(clear_tinst_valid) begin
 			tinst_valid_r <= 1'b0;
@@ -128,7 +133,10 @@ module sarray_top(
 		end
 	end
 
+	assign sarray_r_ready_o = ;// @todo
+
 	assign sarray_ar_hsk = sarray_ar_valid_o & sarray_ar_ready_i;
+	assign sarray_r_hsk  = sarray_r_valid_i & sarray_r_ready_o;
 
 	assign set_ar_done 	 = sarray_ar_hsk & (&ar_cnt_r);
 	assign clear_ar_done = clear_tinst_valid | push_tmma_valid;
@@ -148,14 +156,24 @@ module sarray_top(
 
 	assign ar_cnt_incr = sarray_ar_hsk;
 
+	assign wr_a_buf_valid_i = tinst_preloada_valid & sarray_r_hsk;
+	assign wr_a_buf_id_i = wr_a_buf_id_r;
+	assign wr_a_buf_data = sarray_r_data_i;
+	assign wr_a_buf_addr = ; // @todo
+	assign rd_a_buf_valid = tinst_tmma_valid;
+	assign rd_a_buf_id = ; // @todo
+	assign rd_a_buf_addr = tmma_cnt_r;
+
 	a_buf u_a_buf (
 		.clk					(clk),
 		.rst_n					(rst_n),
 		.wr_a_buf_valid_i		(wr_a_buf_valid),
 		.wr_a_buf_id_i			(wr_a_buf_id),
+		.wr_a_buf_addr_i		(wr_a_buf_addr),
 		.wr_a_buf_data_i		(wr_a_buf_data),
 		.rd_a_buf_valid_i		(rd_a_buf_valid),
 		.rd_a_buf_id_i			(rd_a_buf_id),
+		.rd_a_buf_addr_i		(rd_a_buf_addr),
 		.rd_a_buf_ret_valid_o	(rd_a_buf_ret_valid),
 		.rd_a_buf_ret_data_o	(rd_a_buf_ret_data)
 	);

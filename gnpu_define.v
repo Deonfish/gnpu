@@ -4,6 +4,8 @@
 `define SARRAY_LOAD_WIDTH 		2048
 `define SARRAY_STORE_WIDTH 		2048
 `define TMMA_CNT_WIDTH          6
+`define SARRAY_H				64
+`define SARRAY_W				64
 
 `define TINST_TYPE_TMMA 		0
 `define TINST_TYPE_PRELOADC 	1

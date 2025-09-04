@@ -58,6 +58,15 @@ module sarray_top(
 	wire [0:0] 					  		rd_a_buf_ret_valid;
 	wire [`SARRAY_LOAD_WIDTH-1:0] 		rd_a_buf_ret_data;
 
+	wire [0:0] 					 		left_shin_valid;
+	wire [`SARRAY_LOAD_WIDTH-1:0]  		left_shin_data;
+	wire [`SARRAY_H-1:0] 				left_sho_valid;
+	wire [``SARRAY_LOAD_WIDTH-1:0] 		left_sho_data;
+	wire [0:0] 					 		top_shin_valid;
+	wire [`SARRAY_LOAD_WIDTH-1:0]  		top_shin_data;
+	wire [`SARRAY_H-1:0] 				top_sho_valid;
+	wire [``SARRAY_LOAD_WIDTH-1:0] 		top_sho_data;
+
 	always @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
 			tinst_valid_r <= 'b0;
@@ -119,6 +128,24 @@ module sarray_top(
 	assign sarray_ar_addr_o  = tmma_src_addr1_r + (ar_cnt_r<<8);
 
 	assign ar_cnt_incr = sarray_ar_valid_o & sarray_ar_ready_i;
+
+	shift_reg u_left_shift_reg(
+		.clk				(clk),
+		.rst_n				(rst_n),
+		.shin_valid_i		(left_shin_valid),
+		.shin_data_i		(left_shin_data),
+		.sho_valid_o		(left_sho_valid),
+		.sho_data_o			(left_sho_data)
+	);
+
+	shift_reg u_top_shift_reg(
+		.clk				(clk),
+		.rst_n				(rst_n),
+		.shin_valid_i		(top_shin_valid),
+		.shin_data_i		(top_shin_data),
+		.sho_valid_o		(top_sho_valid),
+		.sho_data_o			(top_sho_data)
+	);
 
 	sarray u_sarray (
 		.clk				 (clk)

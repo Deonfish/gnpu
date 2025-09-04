@@ -22,10 +22,12 @@ module sarray_top(
 
 	reg  [0:0] 							tinst_valid_r;
 	reg  [`TINST_TYPE_WIDTH-1:0]		tinst_type_r;
-	wire [0:0]							push_tinst_valid;
+	wire [0:0]							push_tmma_valid;
+	wire [0:0]							push_preloada_valid;
 	wire [0:0] 							clear_tinst_valid;
 	reg  [0:0]							tmma_precision_r;
 	reg  [0:0]							tmma_acc_r;
+	reg  [63:0]							preloada_src_addr0_r;
 	reg  [63:0]							tmma_src_addr1_r;
 	reg  [`TMMA_CNT_WIDTH-1:0] 			tmma_cnt_r;
 	wire [0:0]							tmma_cnt_incr;
@@ -34,6 +36,9 @@ module sarray_top(
 	reg  [0:0]							ar_done_r;
 	wire [0:0]							set_ar_done;
 	wire [0:0]							clear_ar_done;
+	wire [0:0]							tinst_tmma_valid;
+	wire [0:0]							tinst_preloada_valid;
+	wire [0:0]							sarray_ar_hsk;
 
 	wire [0:0] 							post_storec_valid;
 	wire [0:0] 							left_in_valid;
@@ -67,24 +72,35 @@ module sarray_top(
 	wire [`SARRAY_H-1:0] 				top_sho_valid;
 	wire [``SARRAY_LOAD_WIDTH-1:0] 		top_sho_data;
 
+	assign issue_tinst_ready_o = ~tinst_valid_r | ; // @todo
+
+	assign push_tmma_valid 	   = issue_tinst_valid_i && issue_tinst_ready_o && issue_tinst_type_i==`TINST_TYPE_TMMA;
+	assign push_preloada_valid = issue_tinst_valid_i && issue_tinst_ready_o && issue_tinst_type_i==`TINST_TYPE_PRELOADA;
+	assign clear_tinst_valid = ; // @todo
+
 	always @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
 			tinst_valid_r <= 'b0;
 		end
-		else if(push_tinst_valid) begin
+		else if(push_tmma_valid) begin
 			tinst_valid_r 	  <= 1'b1;
 			tinst_type_r  	  <= issue_tinst_type_i;
 			tmma_precision_r  <= issue_tinst_precision_i;
 			tmma_acc_r 		  <= issue_tinst_acc_i;
 			tmma_src_addr1_r  <= issue_tinst_addr1_i;
 		end
+		else if(push_preloada_valid) begin
+			tinst_valid_r 	  <= 1'b1;
+			tinst_type_r  	  <= issue_tinst_type_i;
+			preloada_src_addr0_r  <= issue_tinst_addr0_i;
+		end
 		else if(clear_tinst_valid) begin
 			tinst_valid_r <= 1'b0;
 		end
 	end
 
-	assign push_tinst_valid = issue_tinst_valid_i && issue_tinst_ready_o && issue_tinst_type_i==`TINST_TYPE_TMMA;
-	assign clear_tinst_valid = ; // @todo
+	assign tinst_tmma_valid 	= tinst_valid_r && tinst_type_r==`TINST_TYPE_TMMA;
+	assign tinst_preloada_valid = tinst_valid_r && tinst_type_r==`TINST_TYPE_PRELOADA;
 
 	always @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
@@ -112,8 +128,10 @@ module sarray_top(
 		end
 	end
 
-	assign set_ar_done 	 = sarray_ar_valid_o & sarray_ar_ready_i & |ar_cnt_r;
-	assign clear_ar_done = clear_tinst_valid | push_tinst_valid;
+	assign sarray_ar_hsk = sarray_ar_valid_o & sarray_ar_ready_i;
+
+	assign set_ar_done 	 = sarray_ar_hsk & (&ar_cnt_r);
+	assign clear_ar_done = clear_tinst_valid | push_tmma_valid;
 
 	always @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
@@ -124,10 +142,23 @@ module sarray_top(
 		end
 	end
 
-	assign sarray_ar_valid_o = tinst_valid_r && tinst_type_r==`TINST_TYPE_TMMA && !ar_done_r;
-	assign sarray_ar_addr_o  = tmma_src_addr1_r + (ar_cnt_r<<8);
+	assign sarray_ar_valid_o = (tinst_tmma_valid | tinst_preloada_valid) & ~ar_done_r;
+	assign sarray_ar_addr_o  = (tmma_src_addr1_r & {`ADDR_WIDTH{tinst_tmma_valid}} |
+							   preloada_src_addr0_r & {`ADDR_WIDTH{push_preloada_valid}}) + (ar_cnt_r<<8);
 
-	assign ar_cnt_incr = sarray_ar_valid_o & sarray_ar_ready_i;
+	assign ar_cnt_incr = sarray_ar_hsk;
+
+	a_buf u_a_buf (
+		.clk					(clk),
+		.rst_n					(rst_n),
+		.wr_a_buf_valid_i		(wr_a_buf_valid),
+		.wr_a_buf_id_i			(wr_a_buf_id),
+		.wr_a_buf_data_i		(wr_a_buf_data),
+		.rd_a_buf_valid_i		(rd_a_buf_valid),
+		.rd_a_buf_id_i			(rd_a_buf_id),
+		.rd_a_buf_ret_valid_o	(rd_a_buf_ret_valid),
+		.rd_a_buf_ret_data_o	(rd_a_buf_ret_data)
+	);
 
 	shift_reg u_left_shift_reg(
 		.clk				(clk),
@@ -165,18 +196,5 @@ module sarray_top(
 		.bot_o_cnt_o		 (bot_o_cnt),
 		.bot_o_data_o		 (bot_o_data)
 	);
-
-	a_buf u_a_buf (
-		.clk					(clk),
-		.rst_n					(rst_n),
-		.wr_a_buf_valid_i		(wr_a_buf_valid),
-		.wr_a_buf_id_i			(wr_a_buf_id),
-		.wr_a_buf_data_i		(wr_a_buf_data),
-		.rd_a_buf_valid_i		(rd_a_buf_valid),
-		.rd_a_buf_id_i			(rd_a_buf_id),
-		.rd_a_buf_ret_valid_o	(rd_a_buf_ret_valid),
-		.rd_a_buf_ret_data_o	(rd_a_buf_ret_data)
-	);
-
 
 endmodule

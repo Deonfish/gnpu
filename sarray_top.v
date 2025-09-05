@@ -32,7 +32,9 @@ module sarray_top(
 	reg  [`TMMA_CNT_WIDTH-1:0] 			tmma_cnt_r;
 	wire [0:0]							tmma_cnt_incr;
 	reg  [5:0]							ar_cnt_r;
+	reg  [5:0]							r_cnt_r;
 	wire [0:0]							ar_cnt_incr;
+	wire [0:0]							r_cnt_incr;
 	reg  [0:0]							ar_done_r;
 	wire [0:0]							set_ar_done;
 	wire [0:0]							clear_ar_done;
@@ -40,6 +42,7 @@ module sarray_top(
 	wire [0:0]							tinst_preloada_valid;
 	wire [0:0]							sarray_ar_hsk;
 	wire [0:0]							sarray_r_hsk;
+	wire [0:0]							rd_b_ret_valid;
 
 	wire [0:0] 							post_storec_valid;
 	wire [0:0] 							left_in_valid;
@@ -76,11 +79,14 @@ module sarray_top(
 	wire [`SARRAY_H-1:0] 				top_sho_valid;
 	wire [``SARRAY_LOAD_WIDTH-1:0] 		top_sho_data;
 
-	assign issue_tinst_ready_o = ~tinst_valid_r | ; // @todo
+	wire [0:0] 							tmma_finished;
+	wire [0:0]							preloada_finished;
+
+	assign issue_tinst_ready_o = ~tinst_valid_r;
 
 	assign push_tmma_valid 	   = issue_tinst_valid_i && issue_tinst_ready_o && issue_tinst_type_i==`TINST_TYPE_TMMA;
 	assign push_preloada_valid = issue_tinst_valid_i && issue_tinst_ready_o && issue_tinst_type_i==`TINST_TYPE_PRELOADA;
-	assign clear_tinst_valid = ; // @todo
+	assign clear_tinst_valid   = tmma_finished | preloada_finished;
 
 	always @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
@@ -116,7 +122,7 @@ module sarray_top(
 		end
 	end
 
-	assign tmma_cnt_incr = ; // @todo
+	assign tmma_cnt_incr = left_shin_valid & top_shin_valid;
 
 	assign left_in_cnt = tmma_cnt_r;
 	assign top_in_cnt  = tmma_cnt_r;
@@ -133,7 +139,7 @@ module sarray_top(
 		end
 	end
 
-	assign sarray_r_ready_o = ;// @todo
+	assign sarray_r_ready_o = 1'b1;
 
 	assign sarray_ar_hsk = sarray_ar_valid_o & sarray_ar_ready_i;
 	assign sarray_r_hsk  = sarray_r_valid_i & sarray_r_ready_o;
@@ -150,19 +156,30 @@ module sarray_top(
 		end
 	end
 
+	always @(posedge clk or negedge rst_n) begin
+		if(!rst_n) begin
+			r_cnt_r <= 'b0;
+		end
+		else if(r_cnt_incr) begin
+			r_cnt_r <= r_cnt_r + 1;
+		end
+	end
+
 	assign sarray_ar_valid_o = (tinst_tmma_valid | tinst_preloada_valid) & ~ar_done_r;
 	assign sarray_ar_addr_o  = (tmma_src_addr1_r & {`ADDR_WIDTH{tinst_tmma_valid}} |
 							   preloada_src_addr0_r & {`ADDR_WIDTH{push_preloada_valid}}) + (ar_cnt_r<<8);
 
 	assign ar_cnt_incr = sarray_ar_hsk;
+	assign r_cnt_incr  = sarray_r_hsk;
 
-	assign wr_a_buf_valid_i = tinst_preloada_valid & sarray_r_hsk;
-	assign wr_a_buf_id_i = wr_a_buf_id_r;
-	assign wr_a_buf_data = sarray_r_data_i;
-	assign wr_a_buf_addr = ; // @todo
+	assign wr_a_buf_valid = tinst_preloada_valid & sarray_r_hsk;
+	assign wr_a_buf_id 	  = wr_a_buf_id_r;
+	assign wr_a_buf_data  = sarray_r_data_i;
+	assign wr_a_buf_addr  = r_cnt_r;
+
 	assign rd_a_buf_valid = tinst_tmma_valid;
-	assign rd_a_buf_id = ; // @todo
-	assign rd_a_buf_addr = tmma_cnt_r;
+	assign rd_a_buf_id 	  = wr_a_buf_id_r;
+	assign rd_a_buf_addr  = tmma_cnt_r;
 
 	a_buf u_a_buf (
 		.clk					(clk),
@@ -178,6 +195,10 @@ module sarray_top(
 		.rd_a_buf_ret_data_o	(rd_a_buf_ret_data)
 	);
 
+	rd_b_ret_valid = tinst_tmma_valid & sarray_r_hsk;
+	assign left_shin_valid = rd_b_ret_valid;
+	assign left_shin_data  = rd_a_buf_ret_data;
+
 	shift_reg u_left_shift_reg(
 		.clk				(clk),
 		.rst_n				(rst_n),
@@ -186,6 +207,9 @@ module sarray_top(
 		.sho_valid_o		(left_sho_valid),
 		.sho_data_o			(left_sho_data)
 	);
+
+	assign top_shin_valid = rd_b_ret_valid;
+	assign top_shin_data  = sarray_r_data_i;
 
 	shift_reg u_top_shift_reg(
 		.clk				(clk),
@@ -214,5 +238,8 @@ module sarray_top(
 		.bot_o_cnt_o		 (bot_o_cnt),
 		.bot_o_data_o		 (bot_o_data)
 	);
+
+	assign tmma_finished = &tmma_cnt_r;
+	assign preloada_finished = &r_cnt_r;
 
 endmodule

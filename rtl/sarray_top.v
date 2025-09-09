@@ -62,22 +62,22 @@ module sarray_top(
 	reg  [0:0]							wr_a_buf_id_r;
 	wire [0:0] 					  		wr_a_buf_valid;
 	wire [0:0] 					  		wr_a_buf_id;
-	wire [``TMMA_CNT_WIDTH-1:0]			wr_a_buf_addr;
+	wire [`TMMA_CNT_WIDTH-1:0]			wr_a_buf_addr;
 	wire [0:0] 					  		wr_a_buf_data;
 	wire [0:0] 					  		rd_a_buf_valid;
 	wire [0:0] 					  		rd_a_buf_id;
-	wire [``TMMA_CNT_WIDTH-1:0]			rd_a_buf_addr;
+	wire [`TMMA_CNT_WIDTH-1:0]			rd_a_buf_addr;
 	wire [0:0] 					  		rd_a_buf_ret_valid;
 	wire [`SARRAY_LOAD_WIDTH-1:0] 		rd_a_buf_ret_data;
 
 	wire [0:0] 					 		left_shin_valid;
 	wire [`SARRAY_LOAD_WIDTH-1:0]  		left_shin_data;
 	wire [`SARRAY_H-1:0] 				left_sho_valid;
-	wire [``SARRAY_LOAD_WIDTH-1:0] 		left_sho_data;
+	wire [`SARRAY_LOAD_WIDTH-1:0] 		left_sho_data;
 	wire [0:0] 					 		top_shin_valid;
 	wire [`SARRAY_LOAD_WIDTH-1:0]  		top_shin_data;
 	wire [`SARRAY_H-1:0] 				top_sho_valid;
-	wire [``SARRAY_LOAD_WIDTH-1:0] 		top_sho_data;
+	wire [`SARRAY_LOAD_WIDTH-1:0] 		top_sho_data;
 
 	wire [0:0] 							tmma_finished;
 	wire [0:0]							preloada_finished;
@@ -199,7 +199,7 @@ module sarray_top(
 	assign left_shin_valid = rd_b_ret_valid;
 	assign left_shin_data  = rd_a_buf_ret_data;
 
-	shift_reg u_left_shift_reg(
+	shift_regs u_left_shift_reg(
 		.clk				(clk),
 		.rst_n				(rst_n),
 		.shin_valid_i		(left_shin_valid),
@@ -211,7 +211,7 @@ module sarray_top(
 	assign top_shin_valid = rd_b_ret_valid;
 	assign top_shin_data  = sarray_r_data_i;
 
-	shift_reg u_top_shift_reg(
+	shift_regs u_top_shift_reg(
 		.clk				(clk),
 		.rst_n				(rst_n),
 		.shin_valid_i		(top_shin_valid),

@@ -3,11 +3,11 @@ module a_buf(
 	input  							rst_n,
 	input  [0:0] 					wr_a_buf_valid_i,
 	input  [0:0] 					wr_a_buf_id_i,
-	input  [``TMMA_CNT_WIDTH-1:0]	wr_a_buf_addr_i,
-	input  [0:0] 					wr_a_buf_data_i,
+	input  [`TMMA_CNT_WIDTH-1:0]	wr_a_buf_addr_i,
+	input  [`SARRAY_LOAD_WIDTH-1:0] wr_a_buf_data_i,
 	input  [0:0] 					rd_a_buf_valid_i,
 	input  [0:0] 					rd_a_buf_id_i,
-	input  [``TMMA_CNT_WIDTH-1:0]	rd_a_buf_addr_i,
+	input  [`TMMA_CNT_WIDTH-1:0]	rd_a_buf_addr_i,
 	output [0:0] 					rd_a_buf_ret_valid_o,
 	output [`SARRAY_LOAD_WIDTH-1:0] rd_a_buf_ret_data_o
 );
@@ -15,13 +15,16 @@ module a_buf(
 	bit[`SARRAY_LOAD_WIDTH-1:0] buf[`A_BUF_NUM][64];
 
 genvar i;
+genvar j;
 generate
 for(i=0; i<2; i=i+1) begin
+for(j=0; j<64; j=j+1) begin
 	always @(posedge clk or negedge rst_n) begin
-		if(wr_a_buf_valid_i && i==wr_a_buf_id_i) begin
-			buf[i][wr_a_buf_addr_i] <= wr_a_buf_data_i;
+		if(wr_a_buf_valid_i && j==wr_a_buf_id_i) begin
+			buf[i][j] <= wr_a_buf_data_i;
 		end
 	end
+end
 end
 endgenerate
 

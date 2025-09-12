@@ -14,4 +14,7 @@
 `define TINST_TYPE_POSTSTOREC 	2
 `define TINST_TYPE_PRELOADA 	3
 
+`define PE_DATA_TYPE_C			0
+`define PE_DATA_TYPE_A			1
+
 `define FAKE_PE

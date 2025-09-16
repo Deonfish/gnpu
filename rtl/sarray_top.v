@@ -46,13 +46,12 @@ module sarray_top(
 
 	wire [0:0] 							post_storec_valid;
 	wire [0:0] 							left_in_valid;
-	wire [0:0] 							left_in_a_tag;
-	wire [0:0] 							left_in_c_tag;
+	wire [0:0] 							left_in_type;
 	wire [`TMMA_CNT_WIDTH-1:0] 			left_in_cnt;
+	wire [`TMMA_PRECISION_WIDTH-1:0] 	left_in_precision;
 	wire [`SARRAY_LOAD_WIDTH-1:0] 		left_in_data;
 	wire [0:0] 							top_in_valid;
 	wire [0:0] 							top_in_acc;
-	wire [`TMMA_PRECISION_WIDTH-1:0] 	top_in_precision;
 	wire [`TMMA_CNT_WIDTH-1:0] 			top_in_cnt;
 	wire [`SARRAY_LOAD_WIDTH-1:0] 		top_in_data;
 	wire [0:0] 							bot_o_valid;
@@ -225,13 +224,12 @@ module sarray_top(
 		.rst_n				 (rst_n)
 		.post_storec_valid_i (post_storec_valid),
 		.left_in_valid_i	 (left_in_valid),
-		.left_in_a_tag_i	 (left_in_a_tag),
-		.left_in_c_tag_i	 (left_in_c_tag),
+		.left_in_type_i	  	 (left_in_type),
 		.left_in_cnt_i		 (left_in_cnt),
+		.left_in_precision_i (left_in_precision),
 		.left_in_data_i		 (left_in_data),
 		.top_in_valid_i		 (top_in_valid),
 		.top_in_acc_i		 (top_in_acc),
-		.top_in_precision_i	 (top_in_precision),
 		.top_in_cnt_i		 (top_in_cnt),
 		.top_in_data_i		 (top_in_data),
 		.bot_o_valid_o		 (bot_o_valid),

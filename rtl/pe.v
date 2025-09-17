@@ -28,6 +28,8 @@ module pe #(
 );
 
 	wire [0:0] input_ab_valid;
+	wire [0:0] input_c_valid;
+	wire [0:0] input_c_hit;
 
 	wire [0:0] 							c_valid;
 	wire [`PE_INPUT_DATA_WIDTH-1:0] 	c_data;
@@ -60,9 +62,11 @@ module pe #(
 	wire [`PE_INPUT_DATA_WIDTH-1:0] 	o_right_buf_data;
 
 	assign input_ab_valid = top_data_valid_i && left_data_valid_i && left_data_type_i==`PE_DATA_TYPE_A;
+	assign input_c_valid = left_data_valid_i && left_data_type_i==`PE_DATA_TYPE_C;
+	assign input_c_hit = input_c_valid && left_data_cnt_i==(`SARRAY_W-x);
 
-	assign c_valid = 0;
-	assign c_data = 0;
+	assign c_valid = input_c_hit;
+	assign c_data = top_data_i;
 	assign cal_valid = input_ab_valid;
 	assign cal_precision = left_precision_i;
 	assign a_data = left_data_i;
@@ -101,7 +105,7 @@ module pe #(
 		.data_o			(o_bot_buf_data)
 	);
 
-	assign i_right_buf_data_vlid = input_ab_valid;
+	assign i_right_buf_data_vlid = input_ab_valid | input_c_valid & ~input_c_hit;
 	assign i_right_buf_data_cnt  = left_data_cnt_i;
 	assign i_right_buf_data_type = left_data_type_i;
 	assign i_right_buf_precision = left_precision_i;

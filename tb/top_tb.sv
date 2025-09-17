@@ -46,7 +46,7 @@ sarray_top dut(
 // clk
 forever begin
     #10;
-    clk = ~clk
+    clk = ~clk;
 end
 // reset
 initial begin

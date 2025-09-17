@@ -46,39 +46,46 @@ module sarray_top(
 	wire [0:0]							sarray_r_hsk;
 	wire [0:0]							rd_b_ret_valid;
 
-	wire [0:0] 							post_storec_valid;
-	wire [0:0] 							left_in_valid;
-	wire [0:0] 							left_in_type;
-	wire [`TMMA_CNT_WIDTH-1:0] 			left_in_cnt;
-	wire [`TMMA_PRECISION_WIDTH-1:0] 	left_in_precision;
-	wire [`SARRAY_LOAD_WIDTH-1:0] 		left_in_data;
-	wire [0:0] 							top_in_valid;
-	wire [0:0] 							top_in_acc;
-	wire [`TMMA_CNT_WIDTH-1:0] 			top_in_cnt;
-	wire [`SARRAY_LOAD_WIDTH-1:0] 		top_in_data;
-	wire [0:0] 							bot_o_valid;
-	wire [`TMMA_CNT_WIDTH-1:0] 			bot_o_cnt;
-	wire [`SARRAY_STORE_WIDTH-1:0] 		bot_o_data;
+	wire [0:0] 									sarray_post_storec_valid;
+	wire [`SARRAY_H-1:0]						sarray_left_in_valid;
+	wire [`TMMA_CNT_WIDTH*`SARRAY_H-1:0]		sarray_left_in_cnt;
+	wire [`SARRAY_H-1:0]						sarray_left_in_type;
+	wire [`TMMA_PRECISION_WIDTH*`SARRAY_H-1:0] 	sarray_left_in_precision;
+	wire [`SARRAY_H:0]							sarray_left_in_acc;
+	wire [`SARRAY_LOAD_WIDTH-1:0] 				sarray_left_in_data;
+	wire [`SARRAY_H-1:0]						sarray_top_in_valid;
+	wire [`SARRAY_LOAD_WIDTH-1:0] 				sarray_top_in_data;
+	wire [`SARRAY_H:0]							sarray_bot_o_valid;
+	wire [`TMMA_CNT_WIDTH*`SARRAY_H-1:0]		sarray_bot_o_cnt;
+	wire [`SARRAY_STORE_WIDTH-1:0] 				sarray_bot_o_dat;
 
-	reg  [0:0]							wr_a_buf_id_r;
-	wire [0:0] 					  		wr_a_buf_valid;
-	wire [0:0] 					  		wr_a_buf_id;
-	wire [`TMMA_CNT_WIDTH-1:0]			wr_a_buf_addr;
-	wire [0:0] 					  		wr_a_buf_data;
-	wire [0:0] 					  		rd_a_buf_valid;
-	wire [0:0] 					  		rd_a_buf_id;
-	wire [`TMMA_CNT_WIDTH-1:0]			rd_a_buf_addr;
-	wire [0:0] 					  		rd_a_buf_ret_valid;
-	wire [`SARRAY_LOAD_WIDTH-1:0] 		rd_a_buf_ret_data;
+	reg  [0:0]									wr_a_buf_id_r;
+	wire [0:0] 					  				wr_a_buf_valid;
+	wire [0:0] 					  				wr_a_buf_id;
+	wire [`TMMA_CNT_WIDTH-1:0]					wr_a_buf_addr;
+	wire [0:0] 					  				wr_a_buf_data;
+	wire [0:0] 					  				rd_a_buf_valid;
+	wire [0:0] 					  				rd_a_buf_id;
+	wire [`TMMA_CNT_WIDTH-1:0]					rd_a_buf_addr;
+	wire [0:0] 					  				rd_a_buf_ret_valid;
+	wire [`SARRAY_LOAD_WIDTH-1:0] 				rd_a_buf_ret_data;
 
-	wire [0:0] 					 		left_shin_valid;
-	wire [`SARRAY_LOAD_WIDTH-1:0]  		left_shin_data;
-	wire [`SARRAY_H-1:0] 				left_sho_valid;
-	wire [`SARRAY_LOAD_WIDTH-1:0] 		left_sho_data;
-	wire [0:0] 					 		top_shin_valid;
-	wire [`SARRAY_LOAD_WIDTH-1:0]  		top_shin_data;
-	wire [`SARRAY_H-1:0] 				top_sho_valid;
-	wire [`SARRAY_LOAD_WIDTH-1:0] 		top_sho_data;
+	wire [0:0] 					                sreg_left_shin_valid;
+    wire[`TMMA_CNT_WIDTH-1]                     sreg_left_shin_cnt;
+    wire[0:0]                                   sreg_left_shin_type;
+    wire[`TMMA_PRECISION_WIDTH-1:0]             sreg_left_shin_precision;
+    wire[0:0]                                   sreg_left_shin_acc;
+	wire [`SARRAY_LOAD_WIDTH-1:0]               sreg_left_shin_data;
+	wire [`SARRAY_H-1:0] 			            sreg_left_sho_valid;
+    wire [`TMMA_CNT_WIDTH*`SARRAY_H-1]          sreg_left_sho_cnt;
+    wire [`SARRAY_H-1:0]                        sreg_left_sho_type;
+    wire [`TMMA_PRECISION_WIDTH*`SARRAY_H-1:0]  sreg_left_sho_precision;
+    wire [`SARRAY_H-1:0]                        sreg_left_sho_acc;
+	wire [`SARRAY_LOAD_WIDTH*`SARRAY_H-1:0]     sreg_left_sho_data;
+	wire [0:0] 					 			    sreg_top_shin_valid;
+	wire [`SARRAY_LOAD_WIDTH-1:0]  			    sreg_top_shin_data;
+	wire [`SARRAY_H-1:0] 					    sreg_top_sho_valid;
+	wire [`SARRAY_LOAD_WIDTH-1:0] 			    sreg_top_sho_data;
 
 	wire [0:0] 							tmma_finished;
 	wire [0:0]							preloada_finished;
@@ -204,46 +211,69 @@ module sarray_top(
 	);
 
 	rd_b_ret_valid = (tinst_tmma_valid | tinst_preloadc_valid) & sarray_r_hsk;
-	assign left_shin_valid = rd_b_ret_valid;
-	assign left_shin_data  = rd_a_buf_ret_data;
+	assign sreg_left_shin_valid 	= rd_b_ret_valid;
+	assign sreg_left_shin_cnt 		= tmma_cnt_r;
+	assign sreg_left_shin_type 		= tinst_preloada_valid;
+	assign sreg_left_shin_precision = tmma_precision_r;
+	assign sreg_left_shin_acc 		= tmma_acc_r;
+	assign sreg_left_shin_data  	= rd_a_buf_ret_data;
 
 	shift_regs u_left_shift_reg(
 		.clk				(clk),
 		.rst_n				(rst_n),
-		.shin_valid_i		(left_shin_valid),
-		.shin_data_i		(left_shin_data),
-		.sho_valid_o		(left_sho_valid),
-		.sho_data_o			(left_sho_data)
+		.shin_valid_i		(sreg_left_shin_valid),
+    	.shin_cnt_i			(sreg_left_shin_cnt),
+    	.shin_type_i		(sreg_left_shin_type),
+    	.shin_precision_i	(sreg_left_shin_precision),
+    	.shin_acc_i			(sreg_left_shin_acc),
+		.shin_data_i		(sreg_left_shin_data),
+		.sho_valid_o		(sreg_left_sho_valid),
+    	.sho_cnt_o			(sreg_left_sho_cnt),
+    	.sho_type_o			(sreg_left_sho_type),
+    	.sho_precision_o	(sreg_left_sho_precision),
+    	.sho_acc_o			(sreg_left_sho_acc),
+		.sho_data_o			(sreg_left_sho_data)
 	);
 
-	assign top_shin_valid = rd_b_ret_valid;
-	assign top_shin_data  = sarray_r_data_i;
+	assign sreg_top_shin_valid = rd_b_ret_valid;
+	assign sreg_top_shin_data  = sarray_r_data_i;
 
-	shift_regs u_top_shift_reg(
+	top_shift_regs u_top_shift_reg(
 		.clk				(clk),
 		.rst_n				(rst_n),
-		.shin_valid_i		(top_shin_valid),
-		.shin_data_i		(top_shin_data),
-		.sho_valid_o		(top_sho_valid),
-		.sho_data_o			(top_sho_data)
+		.shin_valid_i		(sreg_top_shin_valid),
+		.shin_data_i		(sreg_top_shin_data),
+		.sho_valid_o		(sreg_top_sho_valid),
+		.sho_data_o			(sreg_top_sho_data)
 	);
 
+	assign sarray_top_in_valid = sreg_top_sho_valid;
+	assign sarray_top_in_data  = sreg_top_shin_data;
+
+	assign sarray_post_storec_valid = 1'b0; // @todo
+
+	assign sarray_left_in_valid		= sreg_left_sho_valid;
+	assign sarray_left_in_cnt		= sreg_left_sho_cnt;
+	assign sarray_left_in_type		= sreg_left_sho_type;
+	assign sarray_left_in_precision = sreg_left_sho_precision;
+	assign sarray_left_in_acc		= sreg_left_sho_acc;
+	assign sarray_left_in_data		= sreg_left_sho_data;
+
 	sarray u_sarray (
-		.clk				 (clk)
-		.rst_n				 (rst_n)
-		.post_storec_valid_i (post_storec_valid),
-		.left_in_valid_i	 (left_in_valid),
-		.left_in_type_i	  	 (left_in_type),
-		.left_in_cnt_i		 (left_in_cnt),
-		.left_in_precision_i (left_in_precision),
-		.left_in_data_i		 (left_in_data),
-		.top_in_valid_i		 (top_in_valid),
-		.top_in_acc_i		 (top_in_acc),
-		.top_in_cnt_i		 (top_in_cnt),
-		.top_in_data_i		 (top_in_data),
-		.bot_o_valid_o		 (bot_o_valid),
-		.bot_o_cnt_o		 (bot_o_cnt),
-		.bot_o_data_o		 (bot_o_data)
+		.clk				(clk),
+		.rst_n				(rst_n),
+		.post_storec_valid_i(sarray_post_storec_valid),
+		.left_in_valid_i	(sarray_left_in_valid),
+		.left_in_cnt_i		(sarray_left_in_cnt),
+		.left_in_type_i		(sarray_left_in_type),
+		.left_in_precision_i(sarray_left_in_precision),
+		.left_in_acc_i		(sarray_left_in_acc),
+		.left_in_data_i		(sarray_left_in_data),
+		.top_in_valid_i		(sarray_top_in_valid),
+		.top_in_data_i		(sarray_top_in_data),
+		.bot_o_valid_o		(sarray_bot_o_valid),
+		.bot_o_cnt_o		(sarray_bot_o_cnt),
+		.bot_o_data_o		(sarray_bot_o_da;)
 	);
 
 	assign tmma_finished = &tmma_cnt_r;

@@ -83,7 +83,7 @@ for(y=0; y<64; y=y+1) begin
 		assign pe_top_data_valid[x][y] 	 = pe_bot_data_valid[x][y-1];
 		assign pe_top_data_cnt[x][y] 	 = pe_bot_data_cnt[x][y-1];
 		assign pe_top_data[x][y] 		 = pe_bot_data[x][y-1];
-		assign post_storec_valid_i[x][y] = post_storec_valid_i;
+		assign pe_top_storec_valid[x][y] = post_storec_valid_i;
 	end
 
 	if(x!=0) begin

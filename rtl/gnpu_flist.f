@@ -1,4 +1,7 @@
 ../rtl/gnpu_define.v
+../rtl/mac.v
+../rtl/pe_buf.v
+../rtl/pe.v
 ../rtl/a_buf.v
 ../rtl/shift_reg.v
 ../rtl/sarray.v

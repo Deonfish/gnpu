@@ -29,6 +29,7 @@ module sarray_top(
 	reg  [0:0]							tmma_precision_r;
 	reg  [0:0]							tmma_acc_r;
 	reg  [63:0]							preloada_src_addr0_r;
+	reg  [63:0]							preloadc_src_addr0_r;
 	reg  [63:0]							tmma_src_addr1_r;
 	reg  [`TMMA_CNT_WIDTH-1:0] 			tmma_cnt_r;
 	wire [0:0]							tmma_cnt_incr;
@@ -44,7 +45,6 @@ module sarray_top(
 	wire [0:0]							tinst_preloadc_valid;
 	wire [0:0]							sarray_ar_hsk;
 	wire [0:0]							sarray_r_hsk;
-	wire [0:0]							rd_b_ret_valid;
 
 	wire [0:0] 									sarray_post_storec_valid;
 	wire [`SARRAY_H-1:0]						sarray_left_in_valid;
@@ -117,7 +117,7 @@ module sarray_top(
 		else if(push_preloadc_valid) begin
 			tinst_valid_r <= 1'b1;
 			tinst_type_r  	  	  <= issue_tinst_type_i;
-			preloada_src_addr0_r  <= issue_tinst_addr0_i;
+			preloadc_src_addr0_r  <= issue_tinst_addr0_i;
 		end
 		else if(clear_tinst_valid) begin
 			tinst_valid_r <= 1'b0;
@@ -182,7 +182,8 @@ module sarray_top(
 
 	assign sarray_ar_valid_o = (tinst_tmma_valid | tinst_preloada_valid | tinst_preloadc_valid) & ~ar_done_r;
 	assign sarray_ar_addr_o  = (tmma_src_addr1_r & {`ADDR_WIDTH{tinst_tmma_valid}} |
-							   preloada_src_addr0_r & {`ADDR_WIDTH{push_preloada_valid}}) + (ar_cnt_r<<8);
+							   preloada_src_addr0_r & {`ADDR_WIDTH{tinst_preloada_valid}} |
+							   preloadc_src_addr0_r & {`ADDR_WIDTH{tinst_preloadc_valid}}) + (ar_cnt_r<<8);
 
 	assign ar_cnt_incr = sarray_ar_hsk;
 	assign r_cnt_incr  = sarray_r_hsk;
@@ -210,13 +211,13 @@ module sarray_top(
 		.rd_a_buf_ret_data_o	(rd_a_buf_ret_data)
 	);
 
-	rd_b_ret_valid = (tinst_tmma_valid | tinst_preloadc_valid) & sarray_r_hsk;
-	assign sreg_left_shin_valid 	= rd_b_ret_valid;
-	assign sreg_left_shin_cnt 		= tmma_cnt_r;
+	assign sreg_left_shin_valid 	= (tinst_tmma_valid | tinst_preloadc_valid) & sarray_r_hsk;
+	assign sreg_left_shin_cnt 		= r_cnt_r;
 	assign sreg_left_shin_type 		= tinst_preloada_valid;
 	assign sreg_left_shin_precision = tmma_precision_r;
 	assign sreg_left_shin_acc 		= tmma_acc_r;
-	assign sreg_left_shin_data  	= rd_a_buf_ret_data;
+	assign sreg_left_shin_data  	= {`SARRAY_LOAD_WIDTH{tinst_tmma_valid}} & rd_a_buf_ret_data |
+									  {`SARRAY_LOAD_WIDTH{tinst_preloadc_valid}} & sarray_r_data_i;
 
 	shift_regs u_left_shift_reg(
 		.clk				(clk),
@@ -235,7 +236,7 @@ module sarray_top(
 		.sho_data_o			(sreg_left_sho_data)
 	);
 
-	assign sreg_top_shin_valid = rd_b_ret_valid;
+	assign sreg_top_shin_valid = tinst_tmma_valid & sarray_r_hsk;
 	assign sreg_top_shin_data  = sarray_r_data_i;
 
 	top_shift_regs u_top_shift_reg(

@@ -89,13 +89,14 @@ module sarray_top(
 
 	wire [0:0] 							tmma_finished;
 	wire [0:0]							preloada_finished;
+	wire [0:0]							preloadc_finished;
 
 	assign issue_tinst_ready_o = ~tinst_valid_r;
 
 	assign push_tmma_valid 	   = issue_tinst_valid_i && issue_tinst_ready_o && issue_tinst_type_i==`TINST_TYPE_TMMA;
 	assign push_preloada_valid = issue_tinst_valid_i && issue_tinst_ready_o && issue_tinst_type_i==`TINST_TYPE_PRELOADA;
 	assign push_preloadc_valid = issue_tinst_valid_i && issue_tinst_ready_o && issue_tinst_type_i==`TINST_TYPE_PRELOADC;
-	assign clear_tinst_valid   = tmma_finished | preloada_finished;
+	assign clear_tinst_valid   = tmma_finished | preloada_finished | preloadc_finished;
 
 	always @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
@@ -279,5 +280,6 @@ module sarray_top(
 
 	assign tmma_finished = &tmma_cnt_r;
 	assign preloada_finished = &r_cnt_r;
+	assign preloadc_finished = &r_cnt_r;
 
 endmodule

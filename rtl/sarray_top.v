@@ -54,6 +54,7 @@ module sarray_top(
 	wire [`SARRAY_H:0]							sarray_left_in_acc;
 	wire [`SARRAY_LOAD_WIDTH-1:0] 				sarray_left_in_data;
 	wire [`SARRAY_H-1:0]						sarray_top_in_valid;
+	wire [`TMMA_CNT_WIDTH-1:0] 					sarray_top_data_cnt;
 	wire [`SARRAY_LOAD_WIDTH-1:0] 				sarray_top_in_data;
 	wire [`SARRAY_H:0]							sarray_bot_o_valid;
 	wire [`TMMA_CNT_WIDTH*`SARRAY_H-1:0]		sarray_bot_o_cnt;
@@ -83,8 +84,10 @@ module sarray_top(
     wire [`SARRAY_H-1:0]                        sreg_left_sho_acc;
 	wire [`SARRAY_LOAD_WIDTH*`SARRAY_H-1:0]     sreg_left_sho_data;
 	wire [0:0] 					 			    sreg_top_shin_valid;
+    wire[`TMMA_CNT_WIDTH-1]                     sreg_top_shin_cnt;
 	wire [`SARRAY_LOAD_WIDTH-1:0]  			    sreg_top_shin_data;
 	wire [`SARRAY_H-1:0] 					    sreg_top_sho_valid;
+	wire [`TMMA_CNT_WIDTH*`SARRAY_H-1]			sreg_top_sho_cnt;
 	wire [`SARRAY_LOAD_WIDTH-1:0] 			    sreg_top_sho_data;
 
 	wire [0:0] 							tmma_finished;
@@ -227,19 +230,23 @@ module sarray_top(
 	);
 
 	assign sreg_top_shin_valid = tinst_tmma_valid & sarray_r_hsk;
+	assign sreg_top_shin_cnt = ;
 	assign sreg_top_shin_data  = sarray_r_data_i;
 
 	top_shift_regs u_top_shift_reg(
 		.clk				(clk),
 		.rst_n				(rst_n),
 		.shin_valid_i		(sreg_top_shin_valid),
+		.shin_cnt_i			(sreg_top_shin_cnt),
 		.shin_data_i		(sreg_top_shin_data),
 		.sho_valid_o		(sreg_top_sho_valid),
+		.sho_cnt_o			(sreg_top_sho_cnt),
 		.sho_data_o			(sreg_top_sho_data)
 	);
 
 	assign sarray_top_in_valid = sreg_top_sho_valid;
-	assign sarray_top_in_data  = sreg_top_shin_data;
+	assign sarray_top_data_cnt = sreg_top_sho_cnt;
+	assign sarray_top_in_data  = sreg_top_sho_data;
 
 	assign sarray_post_storec_valid = 1'b0; // @todo
 
@@ -261,6 +268,7 @@ module sarray_top(
 		.left_in_acc_i		(sarray_left_in_acc),
 		.left_in_data_i		(sarray_left_in_data),
 		.top_in_valid_i		(sarray_top_in_valid),
+		.top_in_cnt_i		(sarray_top_data_cnt),
 		.top_in_data_i		(sarray_top_in_data),
 		.bot_o_valid_o		(sarray_bot_o_valid),
 		.bot_o_cnt_o		(sarray_bot_o_cnt),

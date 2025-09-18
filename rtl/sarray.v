@@ -12,6 +12,7 @@ module sarray(
 	input  [`SARRAY_LOAD_WIDTH-1:0] 				left_in_data_i,
 
 	input  [`SARRAY_H-1:0]							top_in_valid_i,
+	input  [`TMMA_CNT_WIDTH*`SARRAY_H-1:0]			top_in_cnt_i,
 	input  [`SARRAY_LOAD_WIDTH-1:0] 				top_in_data_i,
 
 	output [`SARRAY_H:0]							bot_o_valid_o,
@@ -20,6 +21,7 @@ module sarray(
 );
 
 	wire [0:0] 							pe_top_data_valid[64][64];
+	wire [`TMMA_CNT_WIDTH-1:0] 			pe_top_data_cnt[64][64];
 	wire [`PE_INPUT_DATA_WIDTH-1:0] 	pe_top_data[64][64];
 	wire [0:0]							pe_top_storec_valid[64][64];
 	wire [0:0] 							pe_left_data_valid[64][64];
@@ -59,6 +61,7 @@ for(y=0; y<64; y=y+1) begin
 		.rst_n				(rst_n),
 
 		.top_data_valid_i	(pe_top_data_valid[x][y]),
+		.top_data_cnt_i		(pe_top_data_cnt[x][y]),
 		.top_data_i			(pe_top_data[x][y]),
 		.top_storec_valid_i	(pe_top_storec_valid[x][y]),
 
@@ -81,6 +84,7 @@ for(y=0; y<64; y=y+1) begin
 
 	if(y!=0) begin
 		assign pe_top_data_valid[x][y] 	 = pe_bot_data_valid[x][y-1];
+		assign pe_top_data_cnt[x][y]	 = pe_bot_data_cnt[x][y-1];
 		assign pe_top_data[x][y] 		 = pe_bot_data[x][y-1];
 		assign pe_top_storec_valid[x][y] = post_storec_valid_i;
 	end

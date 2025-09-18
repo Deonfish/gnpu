@@ -3,12 +3,14 @@ module top_shift_reg #(
 parameter delay_cycle = 1,
 parameter data_width = 32
 ) (
-	input 					clk,
-	input 					rst_n,
-	input [0:0] 			shin_valid_i,
-	input [data_width-1:0] 	shin_data_i,
-	output [0:0] 			sho_valid_o,
-	output [data_width-1:0] sho_data_o
+	input 						clk,
+	input 						rst_n,
+	input [0:0] 				shin_valid_i,
+	input [`TMMA_CNT_WIDTH-1]	shin_cnt_i,
+	input [data_width-1:0] 		shin_data_i,
+	output [0:0] 				sho_valid_o,
+	output [`TMMA_CNT_WIDTH-1]	sho_cnt_o,
+	output [data_width-1:0] 	sho_data_o
 );
 	reg[0:0]			buf_valid_r[delay_cycle];
 	reg[data_width-1:0] buf[delay_cycle];
@@ -101,12 +103,14 @@ endmodule
 
 
 module top_shift_regs(
-	input 							 clk,
-	input 							 rst_n,
-	input  [0:0] 					 shin_valid_i,
-	input  [`SARRAY_LOAD_WIDTH-1:0]  shin_data_i,
-	output [`SARRAY_H-1:0] 			 sho_valid_o,
-	output [`SARRAY_LOAD_WIDTH-1:0]  sho_data_o
+	input 							 		clk,
+	input 							 		rst_n,
+	input  [0:0] 					 		shin_valid_i,
+	input  [`TMMA_CNT_WIDTH-1]		 		shin_cnt_i,
+	input  [`SARRAY_LOAD_WIDTH-1:0]  		shin_data_i,
+	output [`SARRAY_H-1:0] 			 		sho_valid_o,
+	output [`TMMA_CNT_WIDTH*`SARRAY_H-1]	sho_cnt_o,
+	output [`SARRAY_LOAD_WIDTH-1:0]  		sho_data_o
 );
 
     wire [0:0]                                   i_reg_shin_valid[`SARRAY_H];

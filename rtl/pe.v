@@ -66,7 +66,7 @@ module pe #(
 	assign input_c_hit = input_c_valid && left_data_cnt_i==(`SARRAY_W-x);
 
 	assign c_valid = input_c_hit;
-	assign c_data = top_data_i;
+	assign c_data = left_data_i;
 	assign cal_valid = input_ab_valid;
 	assign cal_precision = left_precision_i;
 	assign a_data = left_data_i;

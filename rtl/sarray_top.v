@@ -54,17 +54,17 @@ module sarray_top(
 	wire [`SARRAY_H:0]							sarray_left_in_acc;
 	wire [`SARRAY_LOAD_WIDTH-1:0] 				sarray_left_in_data;
 	wire [`SARRAY_H-1:0]						sarray_top_in_valid;
-	wire [`TMMA_CNT_WIDTH-1:0] 					sarray_top_data_cnt;
+	wire [`TMMA_CNT_WIDTH*`SARRAY_H-1:0]		sarray_top_data_cnt;
 	wire [`SARRAY_LOAD_WIDTH-1:0] 				sarray_top_in_data;
 	wire [`SARRAY_H:0]							sarray_bot_o_valid;
 	wire [`TMMA_CNT_WIDTH*`SARRAY_H-1:0]		sarray_bot_o_cnt;
-	wire [`SARRAY_STORE_WIDTH-1:0] 				sarray_bot_o_dat;
+	wire [`SARRAY_STORE_WIDTH-1:0] 				sarray_bot_o_data;
 
 	reg  [0:0]									wr_a_buf_id_r;
 	wire [0:0] 					  				wr_a_buf_valid;
 	wire [0:0] 					  				wr_a_buf_id;
 	wire [`TMMA_CNT_WIDTH-1:0]					wr_a_buf_addr;
-	wire [0:0] 					  				wr_a_buf_data;
+	wire [`SARRAY_LOAD_WIDTH-1:0]				wr_a_buf_data;
 	wire [0:0] 					  				rd_a_buf_valid;
 	wire [0:0] 					  				rd_a_buf_id;
 	wire [`TMMA_CNT_WIDTH-1:0]					rd_a_buf_addr;
@@ -78,7 +78,7 @@ module sarray_top(
     wire[0:0]                                   sreg_left_shin_acc;
 	wire [`SARRAY_LOAD_WIDTH-1:0]               sreg_left_shin_data;
 	wire [`SARRAY_H-1:0] 			            sreg_left_sho_valid;
-    wire [`TMMA_CNT_WIDTH*`SARRAY_H-1]          sreg_left_sho_cnt;
+    wire [`TMMA_CNT_WIDTH*`SARRAY_H-1:0]		sreg_left_sho_cnt;
     wire [`SARRAY_H-1:0]                        sreg_left_sho_type;
     wire [`TMMA_PRECISION_WIDTH*`SARRAY_H-1:0]  sreg_left_sho_precision;
     wire [`SARRAY_H-1:0]                        sreg_left_sho_acc;
@@ -87,7 +87,7 @@ module sarray_top(
     wire[`TMMA_CNT_WIDTH-1]                     sreg_top_shin_cnt;
 	wire [`SARRAY_LOAD_WIDTH-1:0]  			    sreg_top_shin_data;
 	wire [`SARRAY_H-1:0] 					    sreg_top_sho_valid;
-	wire [`TMMA_CNT_WIDTH*`SARRAY_H-1]			sreg_top_sho_cnt;
+	wire [`TMMA_CNT_WIDTH*`SARRAY_H-1:0]		sreg_top_sho_cnt;
 	wire [`SARRAY_LOAD_WIDTH-1:0] 			    sreg_top_sho_data;
 
 	wire [0:0] 							tmma_finished;
@@ -133,7 +133,7 @@ module sarray_top(
 	assign tinst_preloada_valid = tinst_valid_r && tinst_type_r==`TINST_TYPE_PRELOADA;
 	assign tinst_preloadc_valid = tinst_valid_r && tinst_type_r==`TINST_TYPE_PRELOADC;
 
-	assign tmma_cnt_incr = left_shin_valid & top_shin_valid;
+	assign tmma_cnt_incr = sreg_left_shin_valid & sreg_top_shin_valid;
 
 	always @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
@@ -272,7 +272,7 @@ module sarray_top(
 		.top_in_data_i		(sarray_top_in_data),
 		.bot_o_valid_o		(sarray_bot_o_valid),
 		.bot_o_cnt_o		(sarray_bot_o_cnt),
-		.bot_o_data_o		(sarray_bot_o_da;)
+		.bot_o_data_o		(sarray_bot_o_data)
 	);
 
 	assign tmma_finished = &r_cnt_r;

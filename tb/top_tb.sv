@@ -1,6 +1,6 @@
 module gnpu_tb_top;
 
-logic clk;
+logic clk = 0;
 logic rst_n;
 
 logic [0:0]  						issue_tinst_valid_i;
@@ -20,6 +20,8 @@ logic [0:0] 						sarray_aw_valid_o;
 logic [0:0] 						sarray_aw_ready_i;
 logic [`ADDR_WIDTH-1:0] 			sarray_aw_addr_o;
 logic [`SARRAY_STORE_WIDTH-1:0] 	sarray_aw_data_o;
+
+int ar_q[$];
 
 sarray_top dut(
     .clk(clk),
@@ -44,13 +46,12 @@ sarray_top dut(
 );
 
 // clk
-forever begin
-    #10;
-    clk = ~clk;
+initial begin
+    forever #(10/2)  clk=~clk;
 end
+
 // reset
 initial begin
-    clk = 0;
     rst_n = 0;
     #500;
     rst_n = 1;
@@ -86,17 +87,16 @@ end
 
 initial begin
     sarray_ar_ready_i = 1'b1;
-end
-
-forever begin
-    @(posedge clk);
-    sarray_r_valid_i <= 1'b0;
-    if(ar_q.size()) begin
-        sarray_r_valid_i <= 1'b1;
-        sarray_r_data_i <= $random();
+    forever begin
+        @(posedge clk);
+        sarray_r_valid_i <= 1'b0;
+        if(ar_q.size()) begin
+            sarray_r_valid_i <= 1'b1;
+            sarray_r_data_i <= $random();
+        end
+        if(sarray_ar_valid_o & sarray_ar_ready_i)
+            ar_q.push_back(1);
     end
-    if(sarray_ar_valid_o & sarray_ar_ready_i)
-        ar_q.push_back(1);
 end
 
 // w channel

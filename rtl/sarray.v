@@ -56,7 +56,7 @@ assign pe_left_data[0][x] 		= left_in_data_i[x*`PE_INPUT_DATA_WIDTH+:`PE_INPUT_D
 
 for(y=0; y<64; y=y+1) begin
 
-	pe u_pe (x, y)(
+	pe #(x, y) u_pe (
 		.clk				(clk),
 		.rst_n				(rst_n),
 

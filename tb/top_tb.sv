@@ -1,3 +1,5 @@
+`timescale 1ns/100ps
+
 module gnpu_tb_top;
 
 logic clk = 0;
@@ -22,6 +24,13 @@ logic [`ADDR_WIDTH-1:0] 			sarray_aw_addr_o;
 logic [`SARRAY_STORE_WIDTH-1:0] 	sarray_aw_data_o;
 
 int ar_q[$];
+
+function drv_reset();
+    issue_tinst_valid_i = 'b0;
+    sarray_ar_ready_i   = 'b0;
+    sarray_r_valid_i    = 'b0;
+    sarray_aw_ready_i   = 'b0;
+endfunction
 
 sarray_top dut(
     .clk(clk),
@@ -52,6 +61,7 @@ end
 
 // reset
 initial begin
+    drv_reset();
     rst_n = 0;
     #500;
     rst_n = 1;
@@ -63,24 +73,32 @@ initial begin
     $finish;
 end
 
+// fsdb
+initial begin
+	$fsdbDumpfile("wave.fsdb"); 
+	$fsdbDumpMDA();
+	$fsdbDumpvars(); 
+end
+
 // tinst
 initial begin
     #5000;
     @(posedge clk);
-    issue_tinst_valid_i <= 1;
+    issue_tinst_valid_i <= 1'b1;
     issue_tinst_type_i  <= `TINST_TYPE_PRELOADA;
     issue_tinst_addr0_i <= 'b0;
     @(posedge clk);
-    issue_tinst_valid_i <= 0;
-    #10000;
-    issue_tinst_valid_i     <= 1;
+    issue_tinst_valid_i <= 1'b0;
+    #5000;
+    @(posedge clk);
+    issue_tinst_valid_i     <= 1'b1;
     issue_tinst_type_i      <= `TINST_TYPE_TMMA;
     issue_tinst_addr0_i     <= 'h0;
     issue_tinst_addr1_i     <= 'h1000;
     issue_tinst_precision_i <= 'b0;
     issue_tinst_acc_i       <= 'b0;
     @(posedge clk);
-    issue_tinst_valid_i     <= 0;
+    issue_tinst_valid_i     <= 1'b0;
 end
 
 // rd channel
@@ -93,6 +111,7 @@ initial begin
         if(ar_q.size()) begin
             sarray_r_valid_i <= 1'b1;
             sarray_r_data_i <= $random();
+            ar_q.pop_front();
         end
         if(sarray_ar_valid_o & sarray_ar_ready_i)
             ar_q.push_back(1);

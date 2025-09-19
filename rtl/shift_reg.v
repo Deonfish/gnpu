@@ -12,9 +12,9 @@ parameter data_width = 32
 	output [`TMMA_CNT_WIDTH-1]	sho_cnt_o,
 	output [data_width-1:0] 	sho_data_o
 );
-	reg[0:0]			buf_valid_r[delay_cycle];
+	reg[0:0]						buf_valid_r[delay_cycle];
     reg [`TMMA_CNT_WIDTH-1]         buf_cnt_r[delay_cycle];
-	reg[data_width-1:0] buf[delay_cycle];
+	reg[data_width-1:0] 			buf[delay_cycle];
 
 genvar i;
 generate
@@ -24,13 +24,13 @@ for(i=0; i<delay_cycle-1; i=i+1) begin
 			buf_valid_r[i] <= 1'b1;
 		end
 		else if(shin_valid_i) begin
-			buf_valid_r[0] <= 1'b1;
-			buf_cnt_r[i+1]       <= buf_cnt_r[i];
-			buf[0] <= shin_data_i;
+			buf_valid_r[0] 	<= 1'b1;
+			buf_cnt_r[i+1]	<= buf_cnt_r[i];
+			buf[0] 			<= shin_data_i;
 		end
 		buf_valid_r[i+1] <= buf_valid_r[i];
-		buf_cnt_r[i+1]       <= buf_cnt_r[i];
-		buf[i+1] <= buf[i];
+		buf_cnt_r[i+1]	 <= buf_cnt_r[i];
+		buf[i+1] 		 <= buf[i];
 	end
 end
 endgenerate

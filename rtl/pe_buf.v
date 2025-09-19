@@ -9,7 +9,7 @@ module pe_buf(
 	output [0:0] 						data_valid_o,
 	output [`TMMA_CNT_WIDTH-1:0] 		data_cnt_o,
 	output [0:0] 						data_type_o,
-	output[`TMMA_PRECISION_WIDTH-1:0] 	precision_o,
+	output [`TMMA_PRECISION_WIDTH-1:0] 	precision_o,
 	output [`PE_INPUT_DATA_WIDTH-1:0] 	data_o
 );
 
@@ -25,10 +25,10 @@ module pe_buf(
 		end
 		else if(data_vlid_i) begin
 			data_vlid_r <= 1'b1;
-			data_cnt_r <= data_cnt_i;
+			data_cnt_r  <= data_cnt_i;
 			data_type_r <= data_type_i;
 			precision_r <= precision_i;
-			data_r <= data_i;
+			data_r 		<= data_i;
 		end
 		else if(data_valid_o) begin
 			data_vlid_r <= 1'b0;

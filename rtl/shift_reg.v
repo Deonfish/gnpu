@@ -13,6 +13,7 @@ parameter data_width = 32
 	output [data_width-1:0] 	sho_data_o
 );
 	reg[0:0]			buf_valid_r[delay_cycle];
+    reg [`TMMA_CNT_WIDTH-1]         buf_cnt_r[delay_cycle];
 	reg[data_width-1:0] buf[delay_cycle];
 
 genvar i;
@@ -24,15 +25,18 @@ for(i=0; i<delay_cycle-1; i=i+1) begin
 		end
 		else if(shin_valid_i) begin
 			buf_valid_r[0] <= 1'b1;
+			buf_cnt_r[i+1]       <= buf_cnt_r[i];
 			buf[0] <= shin_data_i;
 		end
 		buf_valid_r[i+1] <= buf_valid_r[i];
+		buf_cnt_r[i+1]       <= buf_cnt_r[i];
 		buf[i+1] <= buf[i];
 	end
 end
 endgenerate
 
 	assign sho_valid_o = buf_valid_r[delay_cycle-1];
+	assign sho_cnt_o        = buf_cnt_r[delay_cycle-1];
 	assign sho_data_o  = buf[delay_cycle-1];
 endmodule
 
@@ -75,10 +79,10 @@ for(i=0; i<delay_cycle-1; i=i+1) begin
 		end
 		else if(shin_valid_i) begin
 			buf_valid_r[0]      <= 1'b1;
-			buf_cnt_r[0]        <= shin_data_i;
-			buf_type_r[0]       <= shin_data_i;
-			buf_precision_r[0]  <= shin_data_i;
-			buf_acc_r[0]        <= shin_data_i;
+			buf_cnt_r[0]        <= shin_cnt_i;
+			buf_type_r[0]       <= shin_type_i;
+			buf_precision_r[0]  <= shin_precision_i;
+			buf_acc_r[0]        <= shin_acc_i;
 			buf[0]              <= shin_data_i;
 		end
 		buf_valid_r[i+1]     <= buf_valid_r[i];
@@ -114,8 +118,10 @@ module top_shift_regs(
 );
 
     wire [0:0]                                   i_reg_shin_valid[`SARRAY_H];
+	wire [`TMMA_CNT_WIDTH-1]                     i_reg_shin_cnt[`SARRAY_H];
     wire [`SARRAY_LOAD_WIDTH/`SARRAY_H-1:0]      i_reg_shin_data[`SARRAY_H];
     wire [0:0]                                   o_reg_sho_valid[`SARRAY_H];
+	wire [`TMMA_CNT_WIDTH-1]                     o_reg_sho_cnt[`SARRAY_H];
     wire [`SARRAY_LOAD_WIDTH/`SARRAY_H-1:0]      o_reg_sho_data[`SARRAY_H];
 
 genvar i;
@@ -126,14 +132,18 @@ for(i=0; i<`SARRAY_H; i=i+1) begin
 	    .clk            (clk),
 	    .rst_n          (rst_n),
 	    .shin_valid_i   (i_reg_shin_valid[i]),
+		.shin_cnt_i     (i_reg_shin_cnt[i]),
 	    .shin_data_i    (i_reg_shin_data[i]),
 	    .sho_valid_o    (o_reg_sho_valid[i]),
+		.sho_cnt_o      (o_reg_sho_cnt[i]),
 	    .sho_data_o     (o_reg_sho_data[i])
     );
 
     assign i_reg_shin_valid[i] = shin_valid_i;
-    assign i_reg_shin_data[i] = shin_data_i[i*`PE_INPUT_DATA_WIDTH+:`PE_INPUT_DATA_WIDTH];
-    assign sho_valid_o[i] = o_reg_sho_valid[i];
+	assign i_reg_shin_cnt[i]   = shin_cnt_i;
+    assign i_reg_shin_data[i]  = shin_data_i[i*`PE_INPUT_DATA_WIDTH+:`PE_INPUT_DATA_WIDTH];
+    assign sho_valid_o[i] 											= o_reg_sho_valid[i];
+	assign sho_cnt_o[i*`TMMA_CNT_WIDTH+:`TMMA_CNT_WIDTH] 			= o_reg_sho_cnt[i];
     assign sho_data_o[i*`PE_INPUT_DATA_WIDTH+:`PE_INPUT_DATA_WIDTH] = o_reg_sho_data[i];
 
 end
@@ -194,19 +204,19 @@ for(i=0; i<`SARRAY_H; i=i+1) begin
 	    .sho_data_o         (o_reg_sho_data[i])
     );
 
-    assign i_reg_shin_valid[i] = shin_valid_i;
-    assign i_reg_shin_cnt[i] = shin_cnt_i;
-    assign i_reg_shin_type[i] = shin_type_i;
-    assign i_reg_shin_precision[i] = shin_precision_i;
-    assign i_reg_shin_acc[i] = shin_acc_i;
-    assign i_reg_shin_data[i] = shin_data_i[i*`PE_INPUT_DATA_WIDTH+:`PE_INPUT_DATA_WIDTH];
+    assign i_reg_shin_valid[i] 		= shin_valid_i;
+    assign i_reg_shin_cnt[i]   		= shin_cnt_i;
+    assign i_reg_shin_type[i]  		= shin_type_i;
+    assign i_reg_shin_precision[i] 	= shin_precision_i;
+    assign i_reg_shin_acc[i] 		= shin_acc_i;
+    assign i_reg_shin_data[i] 		= shin_data_i[i*`PE_INPUT_DATA_WIDTH+:`PE_INPUT_DATA_WIDTH];
 
-    assign sho_valid_o[i] = o_reg_sho_valid[i];
-    assign sho_cnt_o[i*`TMMA_CNT_WIDTH+:TMMA_CNT_WIDTH] = o_reg_sho_cnt[i];
-    assign sho_type_o[i] = o_reg_sho_type[i];
-    assign sho_precision_o[i*`TMMA_PRECISION_WIDTH+:`TMMA_PRECISION_WIDTH] = o_reg_sho_precision[i];
-    assign sho_acc_o[i] = o_reg_sho_acc[i];
-    assign sho_data_o[i*`PE_INPUT_DATA_WIDTH+:`PE_INPUT_DATA_WIDTH] = o_reg_sho_data[i];
+    assign sho_valid_o[i] 													= o_reg_sho_valid[i];
+    assign sho_cnt_o[i*`TMMA_CNT_WIDTH+:`TMMA_CNT_WIDTH] 					= o_reg_sho_cnt[i];
+    assign sho_type_o[i] 													= o_reg_sho_type[i];
+    assign sho_precision_o[i*`TMMA_PRECISION_WIDTH+:`TMMA_PRECISION_WIDTH] 	= o_reg_sho_precision[i];
+    assign sho_acc_o[i] 													= o_reg_sho_acc[i];
+    assign sho_data_o[i*`PE_INPUT_DATA_WIDTH+:`PE_INPUT_DATA_WIDTH] 		= o_reg_sho_data[i];
 
 end
 endgenerate

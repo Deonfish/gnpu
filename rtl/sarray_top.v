@@ -212,7 +212,7 @@ module sarray_top(
 	assign sreg_left_shin_data  	= {`SARRAY_LOAD_WIDTH{tinst_tmma_valid}} & rd_a_buf_ret_data |
 									  {`SARRAY_LOAD_WIDTH{tinst_preloadc_valid}} & sarray_r_data_i;
 
-	shift_regs u_left_shift_reg(
+	left_shift_regs u_left_shift_reg(
 		.clk				(clk),
 		.rst_n				(rst_n),
 		.shin_valid_i		(sreg_left_shin_valid),
@@ -230,7 +230,7 @@ module sarray_top(
 	);
 
 	assign sreg_top_shin_valid = tinst_tmma_valid & sarray_r_hsk;
-	assign sreg_top_shin_cnt = ;
+	assign sreg_top_shin_cnt   = r_cnt_r;
 	assign sreg_top_shin_data  = sarray_r_data_i;
 
 	top_shift_regs u_top_shift_reg(

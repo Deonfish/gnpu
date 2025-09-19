@@ -105,6 +105,7 @@ module sarray_top(
 	always @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
 			tinst_valid_r <= 'b0;
+			wr_a_buf_id_r <= 'b0;
 		end
 		else if(push_tmma_valid) begin
 			tinst_valid_r 	  <= 1'b1;
@@ -206,7 +207,7 @@ module sarray_top(
 
 	assign sreg_left_shin_valid 	= (tinst_tmma_valid | tinst_preloadc_valid) & sarray_r_hsk;
 	assign sreg_left_shin_cnt 		= r_cnt_r;
-	assign sreg_left_shin_type 		= tinst_preloada_valid;
+	assign sreg_left_shin_type 		= tinst_tmma_valid;
 	assign sreg_left_shin_precision = tmma_precision_r;
 	assign sreg_left_shin_acc 		= tmma_acc_r;
 	assign sreg_left_shin_data  	= {`SARRAY_LOAD_WIDTH{tinst_tmma_valid}} & rd_a_buf_ret_data |

@@ -44,6 +44,7 @@ generate
 for(x=0; x<64; x=x+1) begin
 
 assign pe_top_data_valid[x][0] 	 = top_in_valid_i[x];
+assign pe_top_data_cnt[x][0]	 = top_in_cnt_i[x*`TMMA_CNT_WIDTH+:`TMMA_CNT_WIDTH];
 assign pe_top_data[x][0] 		 = top_in_data_i[x*`PE_INPUT_DATA_WIDTH+:`PE_INPUT_DATA_WIDTH];
 assign pe_top_storec_valid[x][0] = post_storec_valid_i;
 

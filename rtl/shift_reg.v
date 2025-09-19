@@ -16,27 +16,35 @@ parameter data_width = 32
     reg [`TMMA_CNT_WIDTH-1]         buf_cnt_r[delay_cycle];
 	reg[data_width-1:0] 			data_buf[delay_cycle];
 
-genvar i;
-generate
-for(i=0; i<delay_cycle-1; i=i+1) begin
 	always @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
-			buf_valid_r[i] <= 1'b1;
+			buf_valid_r[0] <= 'b0;
 		end
-		else if(shin_valid_i) begin
-			buf_valid_r[0] 	<= 1'b1;
-			buf_cnt_r[i+1]	<= buf_cnt_r[i];
+		else begin
+			buf_valid_r[0] 	<= shin_valid_i;
+			buf_cnt_r[0]	<= shin_cnt_i;
 			data_buf[0]		<= shin_data_i;
 		end
-		buf_valid_r[i+1] <= buf_valid_r[i];
-		buf_cnt_r[i+1]	 <= buf_cnt_r[i];
-		data_buf[i+1]	 <= data_buf[i];
+	end
+
+genvar i;
+generate
+for(i=1; i<delay_cycle; i=i+1) begin
+	always @(posedge clk or negedge rst_n) begin
+		if(!rst_n) begin
+			buf_valid_r[i] <= 1'b0;
+		end
+		else begin
+			buf_valid_r[i] <= buf_valid_r[i-1];
+			buf_cnt_r[i]	 <= buf_cnt_r[i-1];
+			data_buf[i]	 <= data_buf[i-1];
+		end
 	end
 end
 endgenerate
 
 	assign sho_valid_o = buf_valid_r[delay_cycle-1];
-	assign sho_cnt_o        = buf_cnt_r[delay_cycle-1];
+	assign sho_cnt_o   = buf_cnt_r[delay_cycle-1];
 	assign sho_data_o  = data_buf[delay_cycle-1];
 endmodule
 
@@ -70,30 +78,37 @@ module left_shift_reg #(
     reg [0:0]                       buf_acc_r[delay_cycle];
 	reg[data_width-1:0]             data_buf[delay_cycle];
 
-genvar i;
-generate
-for(i=0; i<delay_cycle-1; i=i+1) begin
 	always @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
-			buf_valid_r[i] <= 1'b1;
+			buf_valid_r[0] <= 'b0;
 		end
-		else if(shin_valid_i) begin
-			buf_valid_r[0]      <= 1'b1;
+		else begin
+			buf_valid_r[0]      <= shin_valid_i;
 			buf_cnt_r[0]        <= shin_cnt_i;
 			buf_type_r[0]       <= shin_type_i;
 			buf_precision_r[0]  <= shin_precision_i;
 			buf_acc_r[0]        <= shin_acc_i;
-			data_buf[0]              <= shin_data_i;
+			data_buf[0]			<= shin_data_i;
 		end
-		buf_valid_r[i+1]     <= buf_valid_r[i];
-		buf_cnt_r[i+1]       <= buf_cnt_r[i];
-		buf_type_r[i+1]      <= buf_type_r[i];
-		buf_precision_r[i+1] <= buf_precision_r[i];
-		buf_acc_r[i+1]       <= buf_acc_r[i];
-		data_buf[i+1]             <= data_buf[i];
+	end
+
+genvar i;
+generate
+for(i=1; i<delay_cycle; i=i+1) begin
+	always @(posedge clk or negedge rst_n) begin
+		if(!rst_n) begin
+			buf_valid_r[i] <= 1'b0;
+		end
+		else begin
+			buf_valid_r[i]     <= buf_valid_r[i-1];
+			buf_cnt_r[i]       <= buf_cnt_r[i-1];
+			buf_type_r[i]      <= buf_type_r[i-1];
+			buf_precision_r[i] <= buf_precision_r[i-1];
+			buf_acc_r[i]       <= buf_acc_r[i-1];
+			data_buf[i]		 <= data_buf[i-1];
+		end
 	end
 end
-
 endgenerate
 
 	assign sho_valid_o      = buf_valid_r[delay_cycle-1];

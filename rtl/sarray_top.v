@@ -63,11 +63,10 @@ module sarray_top(
 	reg  [0:0]									wr_a_buf_id_r;
 	wire [0:0] 					  				wr_a_buf_valid;
 	wire [0:0] 					  				wr_a_buf_id;
-	wire [`TMMA_CNT_WIDTH-1:0]					wr_a_buf_addr;
+	wire [2:0]									wr_a_buf_data_width;
 	wire [`SARRAY_LOAD_WIDTH-1:0]				wr_a_buf_data;
 	wire [0:0] 					  				rd_a_buf_valid;
 	wire [0:0] 					  				rd_a_buf_id;
-	wire [`TMMA_CNT_WIDTH-1:0]					rd_a_buf_addr;
 	wire [0:0] 					  				rd_a_buf_ret_valid;
 	wire [`SARRAY_LOAD_WIDTH-1:0] 				rd_a_buf_ret_data;
 
@@ -185,22 +184,20 @@ module sarray_top(
 	assign wr_a_buf_valid = tinst_preloada_valid & sarray_r_hsk;
 	assign wr_a_buf_id 	  = wr_a_buf_id_r;
 	assign wr_a_buf_data  = sarray_r_data_i;
-	assign wr_a_buf_addr  = r_cnt_r;
+	assign wr_a_buf_data_width = 'b100; // @todo
 
 	assign rd_a_buf_valid = tinst_tmma_valid;
 	assign rd_a_buf_id 	  = wr_a_buf_id_r;
-	assign rd_a_buf_addr  = r_cnt_r;
 
 	a_buf u_a_buf (
 		.clk					(clk),
 		.rst_n					(rst_n),
 		.wr_a_buf_valid_i		(wr_a_buf_valid),
 		.wr_a_buf_id_i			(wr_a_buf_id),
-		.wr_a_buf_addr_i		(wr_a_buf_addr),
+		.wr_a_buf_data_width_i	(wr_a_buf_data_width),
 		.wr_a_buf_data_i		(wr_a_buf_data),
 		.rd_a_buf_valid_i		(rd_a_buf_valid),
 		.rd_a_buf_id_i			(rd_a_buf_id),
-		.rd_a_buf_addr_i		(rd_a_buf_addr),
 		.rd_a_buf_ret_valid_o	(rd_a_buf_ret_valid),
 		.rd_a_buf_ret_data_o	(rd_a_buf_ret_data)
 	);

@@ -32,7 +32,7 @@ SIMV = ./simv \
 	   -l vcs_sim.log
 	   # +UVM_VERBOSITY=$(UVM_VERBOSITY)  \
 
-VERDI = verdi -nologo -f $(FILE) -ssf $(WAVEFILE) -sswr $(PROJ_HOME)/signal.rc
+VERDI = verdi -nologo -f $(FILE) -ssf $(WAVEFILE) -sswr $(PROJ_HOME)/signal.rc &
 
 all: clean comp run
 

@@ -27,6 +27,7 @@ module sarray_top(
 	wire [0:0]							push_tmma_valid;
 	wire [0:0]							push_preloada_valid;
 	wire [0:0]							push_preloadc_valid;
+	wire [0:0]							push_posttstorec_valid;
 	wire [0:0]							push_tinst_valid;
 	wire [0:0] 							clear_tinst_valid;
 	reg  [0:0]							tmma_precision_r;
@@ -35,6 +36,7 @@ module sarray_top(
 	reg  [63:0]							preloadc_src_addr0_r;
 	reg  [63:0]							tmma_src_addr1_r;
 	wire [0:0]							tmma_cnt_incr;
+	reg  [63:0]							posttstorec_dest_addr0_r;
 	reg  [5:0]							ar_cnt_r;
 	reg  [5:0]							r_cnt_r;
 	wire [0:0]							ar_cnt_incr;
@@ -45,8 +47,12 @@ module sarray_top(
 	wire [0:0]							tinst_tmma_valid;
 	wire [0:0]							tinst_preloada_valid;
 	wire [0:0]							tinst_preloadc_valid;
+	wire [0:0]							tinst_tstorec_valid;
 	wire [0:0]							sarray_ar_hsk;
 	wire [0:0]							sarray_r_hsk;
+	reg  [63:0]							aw_cnt_r;
+	wire [0:0]							aw_cnt_incr;
+	wire [0:0]							sarray_aw_hsk;
 
 	wire [0:0] 									sarray_post_storec_valid;
 	wire [`SARRAY_H-1:0]						sarray_left_in_valid;
@@ -94,14 +100,16 @@ module sarray_top(
 	wire [0:0] 							tmma_finished;
 	wire [0:0]							preloada_finished;
 	wire [0:0]							preloadc_finished;
+	wire [0:0]							tstorec_finished;
 
 	assign issue_tinst_ready_o = ~tinst_valid_r | clear_tinst_valid;
 
 	assign push_tmma_valid 	   = issue_tinst_valid_i && issue_tinst_ready_o && issue_tinst_type_i==`TINST_TYPE_TMMA;
 	assign push_preloada_valid = issue_tinst_valid_i && issue_tinst_ready_o && issue_tinst_type_i==`TINST_TYPE_PRELOADA;
 	assign push_preloadc_valid = issue_tinst_valid_i && issue_tinst_ready_o && issue_tinst_type_i==`TINST_TYPE_PRELOADC;
-	assign push_tinst_valid    = push_tmma_valid | push_preloada_valid | push_preloadc_valid;
-	assign clear_tinst_valid   = tmma_finished | preloada_finished | preloadc_finished;
+	assign push_posttstorec_valid = issue_tinst_valid_i && issue_tinst_ready_o &&  issue_tinst_type_i==`TINST_TYPE_POSTSTOREC;
+	assign push_tinst_valid    = push_tmma_valid | push_preloada_valid | push_preloadc_valid | push_posttstorec_valid;
+	assign clear_tinst_valid   = tmma_finished | preloada_finished | preloadc_finished | tstorec_finished;
 
 	always @(posedge clk or negedge rst_n) begin
 		if(!rst_n) begin
@@ -127,6 +135,11 @@ module sarray_top(
 			tinst_type_r  	  	  <= issue_tinst_type_i;
 			preloadc_src_addr0_r  <= issue_tinst_addr0_i;
 		end
+		else if(push_posttstorec_valid) begin
+			tinst_valid_r 			 <= 1'b1;
+			tinst_type_r  	  	  	 <= issue_tinst_type_i;
+			posttstorec_dest_addr0_r <= issue_tinst_addr0_i;
+		end
 		else if(clear_tinst_valid) begin
 			tinst_valid_r <= 1'b0;
 		end
@@ -135,6 +148,7 @@ module sarray_top(
 	assign tinst_tmma_valid 	= tinst_valid_r && tinst_type_r==`TINST_TYPE_TMMA;
 	assign tinst_preloada_valid = tinst_valid_r && tinst_type_r==`TINST_TYPE_PRELOADA;
 	assign tinst_preloadc_valid = tinst_valid_r && tinst_type_r==`TINST_TYPE_PRELOADC;
+	assign tinst_tstorec_valid  = tinst_valid_r && tinst_type_r==`TINST_TYPE_POSTSTOREC;
 
 	assign tmma_cnt_incr = sreg_left_shin_valid & sreg_top_shin_valid;
 
@@ -249,7 +263,7 @@ module sarray_top(
 	assign sarray_top_data_cnt = sreg_top_sho_cnt;
 	assign sarray_top_in_data  = sreg_top_sho_data;
 
-	assign sarray_post_storec_valid = 1'b0; // @todo
+	assign sarray_post_storec_valid = push_posttstorec_valid;
 
 	assign sarray_left_in_valid		= sreg_left_sho_valid;
 	assign sarray_left_in_cnt		= sreg_left_sho_cnt;
@@ -276,8 +290,26 @@ module sarray_top(
 		.bot_o_data_o		(sarray_bot_o_data)
 	);
 
-	assign tmma_finished = &r_cnt_r;
+	assign tmma_finished 	 = &r_cnt_r;
 	assign preloada_finished = &r_cnt_r;
 	assign preloadc_finished = &r_cnt_r;
+	assign tstorec_finished  = &aw_cnt_r;
+
+	assign sarray_aw_valid_o = |sarray_bot_o_valid;
+	assign sarray_aw_addr_o  = posttstorec_dest_addr0_r + (aw_cnt_r<<8);
+	assign sarray_aw_data_o  = sarray_bot_o_data;
+
+	assign sarray_aw_hsk = sarray_aw_valid_o & sarray_aw_ready_i;
+
+	assign aw_cnt_incr = sarray_aw_hsk;
+
+	always @(posedge clk or negedge rst_n) begin
+		if(!rst_n) begin
+			aw_cnt_r <= 'b0;
+		end
+		else if(aw_cnt_incr) begin
+			aw_cnt_r <= aw_cnt_r + 1;
+		end
+	end 
 
 endmodule

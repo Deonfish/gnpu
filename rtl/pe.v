@@ -84,11 +84,13 @@ module pe #(
 		.d_data_o		(d_data)
 	);
 
-	assign i_bot_buf_data_vlid = input_ab_valid;
-	assign i_bot_buf_data_cnt = top_data_cnt_i;
+	assign i_bot_buf_data_vlid = input_ab_valid | top_storec_valid_i;
+	assign i_bot_buf_data_cnt = {`TMMA_CNT_WIDTH{input_ab_valid}} & top_data_cnt_i |
+								{`SARRAY_H{top_storec_valid_i}} & (`SARRAY_H-y);
 	assign i_bot_buf_data_type = 'b0;
 	assign i_bot_buf_precision = 'b0;
-	assign i_bot_buf_data = top_data_i;
+	assign i_bot_buf_data = {`TMMA_CNT_WIDTH{input_ab_valid}} & top_data_i |
+							{`SARRAY_H{top_storec_valid_i}} & d_data;
 
 	pe_buf u_bot_pe_buf(
 		.clk			(clk),

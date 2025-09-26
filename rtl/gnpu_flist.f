@@ -1,4 +1,5 @@
 ../rtl/gnpu_define.v
+../rtl/rstation.v
 ../rtl/mac.v
 ../rtl/pe_buf.v
 ../rtl/pe.v

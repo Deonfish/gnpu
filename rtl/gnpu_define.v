@@ -10,6 +10,9 @@
 `define PE_INPUT_DATA_WIDTH		32
 `define TLOAD_DATAW_WIDTH       3
 
+`define COP_INST_WIDTH          32
+`define COP_REG_WIDTH           64
+
 `define TINST_TYPE_TMMA 		0
 `define TINST_TYPE_PRELOADC 	1
 `define TINST_TYPE_POSTSTOREC 	2

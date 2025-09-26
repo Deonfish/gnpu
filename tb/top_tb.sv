@@ -80,25 +80,59 @@ initial begin
 	$fsdbDumpvars(); 
 end
 
-// tinst
-initial begin
-    #5000;
+task wait_issue_hsk();
+    do {
+        @(posedge clk);
+    } while(!issue_tinst_ready_o);
+    issue_tinst_valid_i <= 1'b0;
+    @(posedge clk);
+endtask
+
+task issue_preloadc();
+    @(posedge clk);
+    issue_tinst_valid_i <= 1'b1;
+    issue_tinst_type_i  <= `TINST_TYPE_PRELOADC;
+    issue_tinst_addr0_i <= $random();
+    wait_issue_hsk();
+endtask
+
+task issue_preloada();
     @(posedge clk);
     issue_tinst_valid_i <= 1'b1;
     issue_tinst_type_i  <= `TINST_TYPE_PRELOADA;
-    issue_tinst_addr0_i <= 'b0;
-    @(posedge clk);
-    issue_tinst_valid_i <= 1'b0;
-    #5000;
+    issue_tinst_addr0_i <= $random();
+    wait_issue_hsk();
+endtask
+
+task issue_tmma();
     @(posedge clk);
     issue_tinst_valid_i     <= 1'b1;
     issue_tinst_type_i      <= `TINST_TYPE_TMMA;
-    issue_tinst_addr0_i     <= 'h0;
-    issue_tinst_addr1_i     <= 'h1000;
+    issue_tinst_addr0_i     <= $random();
+    issue_tinst_addr1_i     <= $random();
     issue_tinst_precision_i <= 'b0;
     issue_tinst_acc_i       <= 'b0;
+    wait_issue_hsk();
+endtask
+
+task issue_poststorec();
     @(posedge clk);
-    issue_tinst_valid_i     <= 1'b0;
+    issue_tinst_valid_i <= 1'b1;
+    issue_tinst_type_i  <= `TINST_TYPE_POSTSTOREC;
+    issue_tinst_addr0_i <= $random();
+endtask
+
+// tinst
+initial begin
+    #5000;
+    issue_preloadc();
+    repeat(10) @(posedge clk);
+    issue_preloada();
+    repeat(10) @(posedge clk);
+    issue_tmma();
+    repeat(10) @(posedge clk);
+    issue_poststorec();
+    repeat(10) @(posedge clk);
 end
 
 // rd channel

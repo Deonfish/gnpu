@@ -1,15 +1,15 @@
 module a_buf_shift_reg(
-	input 			clk,
-	input 			rst_n,
-	input  [2:0]	shift_mode_i,
-	input  [0:0]	right_input_data_valid_i,
-	input  [31:0]  	right_input_data_i,
-	output [0:0]  	left_output_data_valid_o,
-	output [31:0] 	left_output_data_o,
-	input  [0:0]   	down_input_data_valid_i,
-	input  [31:0]  	down_input_data_i,
-	output [0:0]  	up_output_data_valid_o,
-	output [31:0] 	up_output_data_o
+	input 								clk,
+	input 								rst_n,
+	input  [`TLOAD_DATAW_WIDTH-1:0]		shift_mode_i,
+	input  [0:0]						right_input_data_valid_i,
+	input  [31:0]  						right_input_data_i,
+	output [0:0]  						left_output_data_valid_o,
+	output [31:0] 						left_output_data_o,
+	input  [0:0]   						down_input_data_valid_i,
+	input  [31:0]  						down_input_data_i,
+	output [0:0]  						up_output_data_valid_o,
+	output [31:0] 						up_output_data_o
 );
 
 	reg [31:0] buf_data;
@@ -18,9 +18,9 @@ module a_buf_shift_reg(
 	wire shift_4byte_mode;
 	wire shift_out_mode;
 
-	assign shift_byte_mode  = shift_mode_i[0] & right_input_data_valid_i;
-	assign shift_2byte_mode = shift_mode_i[1] & right_input_data_valid_i;
-	assign shift_4byte_mode = shift_mode_i[2] & right_input_data_valid_i;
+	assign shift_byte_mode  = shift_mode_i[`TLOAD_DW_BYTE_IDX]  & right_input_data_valid_i;
+	assign shift_2byte_mode = shift_mode_i[`TLOAD_DW_2BYTE_IDX] & right_input_data_valid_i;
+	assign shift_4byte_mode = shift_mode_i[`TLOAD_DW_4BYTE_IDX] & right_input_data_valid_i;
 
 	assign shift_out_mode = down_input_data_valid_i;
 
@@ -59,7 +59,7 @@ module a_buf(
 
 	input  [0:0] 					wr_a_buf_valid_i,
 	input  [0:0] 					wr_a_buf_id_i,
-	input  [2:0]					wr_a_buf_data_width_i,
+	input  [`TLOAD_DATAW_WIDTH-1:0] wr_a_buf_data_width_i,
 	input  [`SARRAY_LOAD_WIDTH-1:0] wr_a_buf_data_i,
 
 	input  [0:0] 					rd_a_buf_valid_i,
@@ -84,9 +84,9 @@ module a_buf(
 	wire [0:0]  	reg_up_output_data_valid[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
 	wire [31:0] 	reg_up_output_data[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
 
-	assign wr_1b = wr_a_buf_data_width_i[0];
-	assign wr_2b = wr_a_buf_data_width_i[1];
-	assign wr_4b = wr_a_buf_data_width_i[2];
+	assign wr_1b = wr_a_buf_data_width_i[`TLOAD_DW_BYTE_IDX];
+	assign wr_2b = wr_a_buf_data_width_i[`TLOAD_DW_2BYTE_IDX];
+	assign wr_4b = wr_a_buf_data_width_i[`TLOAD_DW_4BYTE_IDX];
 
 genvar id;
 genvar i;

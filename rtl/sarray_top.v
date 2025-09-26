@@ -4,6 +4,7 @@ module sarray_top(
 	input  [0:0]  						issue_tinst_valid_i,
 	output [0:0]						issue_tinst_ready_o,
 	input  [`TINST_TYPE_WIDTH-1:0]  	issue_tinst_type_i,
+	input  [`TLOAD_DATAW_WIDTH-1:0]		issue_tinst_data_width_i,
 	input  [`ADDR_WIDTH-1:0] 			issue_tinst_addr0_i,
 	input  [`ADDR_WIDTH-1:0] 			issue_tinst_addr1_i,
 	input  [`TMMA_PRECISION_WIDTH-1:0]  issue_tinst_precision_i,
@@ -22,6 +23,7 @@ module sarray_top(
 
 	reg  [0:0] 							tinst_valid_r;
 	reg  [`TINST_TYPE_WIDTH-1:0]		tinst_type_r;
+	reg  [`TLOAD_DATAW_WIDTH-1:0]		tinst_data_width_r;
 	wire [0:0]							push_tmma_valid;
 	wire [0:0]							push_preloada_valid;
 	wire [0:0]							push_preloadc_valid;
@@ -117,6 +119,7 @@ module sarray_top(
 			tinst_valid_r 	  	  <= 1'b1;
 			tinst_type_r  	  	  <= issue_tinst_type_i;
 			preloada_src_addr0_r  <= issue_tinst_addr0_i;
+			tinst_data_width_r	  <= issue_tinst_data_width_i;
 			wr_a_buf_id_r 		  <= ~wr_a_buf_id_r;
 		end
 		else if(push_preloadc_valid) begin
@@ -184,7 +187,7 @@ module sarray_top(
 	assign wr_a_buf_valid = tinst_preloada_valid & sarray_r_hsk;
 	assign wr_a_buf_id 	  = wr_a_buf_id_r;
 	assign wr_a_buf_data  = sarray_r_data_i;
-	assign wr_a_buf_data_width = 'b100; // @todo
+	assign wr_a_buf_data_width = tinst_data_width_r;
 
 	assign rd_a_buf_valid = tinst_tmma_valid;
 	assign rd_a_buf_id 	  = wr_a_buf_id_r;

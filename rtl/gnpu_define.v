@@ -12,6 +12,15 @@
 
 `define COP_INST_WIDTH          32
 `define COP_REG_WIDTH           64
+`define COP_FUNC3_TLOAD         3'b000
+`define COP_FUNC3_PRELOADC      3'b001
+`define COP_FUNC3_TMMA          3'b010
+`deinfe COP_FUNC3_POSTSTOREC    3'b011
+`define COP_FUNC3_PRELOADA      3'b100
+`define COP_FUNC3_TSTORE        3'b101
+
+`define TMMAQ_DEPTH             8
+`defein TMMAQ_PTR_WIDTH         3
 
 `define TINST_TYPE_TMMA 		0
 `define TINST_TYPE_PRELOADC 	1

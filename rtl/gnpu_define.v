@@ -15,12 +15,17 @@
 `define COP_FUNC3_TLOAD         3'b000
 `define COP_FUNC3_PRELOADC      3'b001
 `define COP_FUNC3_TMMA          3'b010
-`deinfe COP_FUNC3_POSTSTOREC    3'b011
+`define COP_FUNC3_POSTSTOREC    3'b011
 `define COP_FUNC3_PRELOADA      3'b100
 `define COP_FUNC3_TSTORE        3'b101
 
 `define TMMAQ_DEPTH             8
-`defein TMMAQ_PTR_WIDTH         3
+`define TMMAQ_PTR_WIDTH         3
+
+`define SPAD_BANK_NUM           4
+`define SPAD_BANK_NUM_WIDTH     2
+`define SPAD_BANK_DATA_WIDTH    (256*8)
+`define SPAD_BANK_ADDR_WIDTH    11
 
 `define TINST_TYPE_TMMA 		0
 `define TINST_TYPE_PRELOADC 	1

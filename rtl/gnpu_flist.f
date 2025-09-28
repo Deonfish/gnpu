@@ -9,3 +9,4 @@
 ../rtl/shift_reg.v
 ../rtl/sarray.v
 ../rtl/sarray_top.v
+../rtl/gnpu_top.v

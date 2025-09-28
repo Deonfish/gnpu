@@ -22,7 +22,7 @@ module rstation(
 	output  [`ADDR_WIDTH-1:0] 			issue_tmma_addr0_o,
 	output  [`ADDR_WIDTH-1:0] 			issue_tmma_addr1_o,
 	output  [`TMMA_PRECISION_WIDTH-1:0] issue_tmma_precision_o,
-	output  [0:0]  						issue_tmma_acc_o,
+	output  [0:0]  						issue_tmma_acc_o
 );
 
     wire [2:0] cop_func3;

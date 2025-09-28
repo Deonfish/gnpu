@@ -11,7 +11,7 @@ module gnpu(
     // cop resp channel
     output [0:0]                    cpu_tpu_resp_vld_o,
     input  [0:0]                    cpu_tpu_resp_rdy_i,
-    output [`COP_REG_WIDTH-1:0]     cpu_tpu_resp_data_o,
+    output [`COP_REG_WIDTH-1:0]     cpu_tpu_resp_data_o
 );
 
 	wire  [0:0]  						issue_tmma_valid;
@@ -91,7 +91,7 @@ spad u_spad(
 	.sarray_aw_valid_i(sarray_aw_valid),
 	.sarray_aw_ready_o(sarray_aw_ready),
 	.sarray_aw_addr_i(sarray_aw_addr),
-	.sarray_aw_data_i(sarray_aw_data),
+	.sarray_aw_data_i(sarray_aw_data)
 );
 
 endmodule

@@ -5,53 +5,30 @@ module gnpu_tb_top;
 logic clk = 0;
 logic rst_n;
 
-logic [0:0]  						issue_tinst_valid_i;
-logic [0:0]						    issue_tinst_ready_o;
-logic [`TINST_TYPE_WIDTH-1:0]  	    issue_tinst_type_i;
-logic [`ADDR_WIDTH-1:0] 			issue_tinst_addr0_i;
-logic [`ADDR_WIDTH-1:0] 			issue_tinst_addr1_i;
-logic [`TMMA_PRECISION_WIDTH-1:0]   issue_tinst_precision_i;
-logic [0:0]  						issue_tinst_acc_i;
-logic [0:0]  						sarray_ar_valid_o;
-logic [0:0]  						sarray_ar_ready_i;
-logic [`ADDR_WIDTH-1:0]  			sarray_ar_addr_o;
-logic [0:0]  						sarray_r_valid_i;
-logic [0:0]  						sarray_r_ready_o;
-logic [`SARRAY_LOAD_WIDTH-1:0] 	    sarray_r_data_i;
-logic [0:0] 						sarray_aw_valid_o;
-logic [0:0] 						sarray_aw_ready_i;
-logic [`ADDR_WIDTH-1:0] 			sarray_aw_addr_o;
-logic [`SARRAY_STORE_WIDTH-1:0] 	sarray_aw_data_o;
+logic [0:0]                    cpu_tpu_req_vld_i;
+logic [0:0]                    cpu_tpu_req_rdy_o;
+logic [`COP_INST_WIDTH-1:0]    cpu_tpu_req_insn_i;
+logic [`COP_REG_WIDTH-1:0]     cpu_tpu_req_rs1_data_i;
+logic [`COP_REG_WIDTH-1:0]     cpu_tpu_req_rs2_data_i;
+logic [`COP_REG_WIDTH-1:0]     cpu_tpu_req_rs3_data_i;
+logic [0:0]                    cpu_tpu_resp_vld_o;
+logic [0:0]                    cpu_tpu_resp_rdy_i;
+logic [`COP_REG_WIDTH-1:0]     cpu_tpu_resp_data_o;
 
-int ar_q[$];
-
-function drv_reset();
-    issue_tinst_valid_i = 'b0;
-    sarray_ar_ready_i   = 'b0;
-    sarray_r_valid_i    = 'b0;
-    sarray_aw_ready_i   = 'b0;
-endfunction
-
-sarray_top dut(
-    .clk(clk),
-    .rst_n(rst_n),
-    .issue_tinst_valid_i(issue_tinst_valid_i),
-    .issue_tinst_ready_o(issue_tinst_ready_o),
-    .issue_tinst_type_i(issue_tinst_type_i),
-    .issue_tinst_addr0_i(issue_tinst_addr0_i),
-    .issue_tinst_addr1_i(issue_tinst_addr1_i),
-    .issue_tinst_precision_i(issue_tinst_precision_i),
-    .issue_tinst_acc_i(issue_tinst_acc_i),
-    .sarray_ar_valid_o(sarray_ar_valid_o),
-    .sarray_ar_ready_i(sarray_ar_ready_i),
-    .sarray_ar_addr_o(sarray_ar_addr_o),
-    .sarray_r_valid_i(sarray_r_valid_i),
-    .sarray_r_ready_o(sarray_r_ready_o),
-    .sarray_r_data_i(sarray_r_data_i),
-    .sarray_aw_valid_o(sarray_aw_valid_o),
-    .sarray_aw_ready_i(sarray_aw_ready_i),
-    .sarray_aw_addr_o(sarray_aw_addr_o),
-    .sarray_aw_data_o(sarray_aw_data_o)
+gnpu u_dut(
+	.clk(clk),
+	.rst_n(rst_n),
+    // cop req channel
+    .cpu_tpu_req_vld_i(cpu_tpu_req_vld_i),
+    .cpu_tpu_req_rdy_o(cpu_tpu_req_rdy_o),
+    .cpu_tpu_req_insn_i(cpu_tpu_req_insn_i),
+    .cpu_tpu_req_rs1_data_i(cpu_tpu_req_rs1_data_i),
+    .cpu_tpu_req_rs2_data_i(cpu_tpu_req_rs2_data_i),
+    .cpu_tpu_req_rs3_data_i(cpu_tpu_req_rs3_data_i),
+    // cop resp channel
+    .cpu_tpu_resp_vld_o(cpu_tpu_resp_vld_o),
+    .cpu_tpu_resp_rdy_i(cpu_tpu_resp_rdy_i),
+    .cpu_tpu_resp_data_o(cpu_tpu_resp_data_o)
 );
 
 // clk
@@ -80,46 +57,59 @@ initial begin
 	$fsdbDumpvars(); 
 end
 
-task wait_issue_hsk();
+function drv_reset();
+    cpu_tpu_req_vld_i       = 1'b0;
+    cpu_tpu_req_insn_i      = 'bz;
+    cpu_tpu_req_rs1_data_i  = 'bz;
+    cpu_tpu_req_rs2_data_i  = 'bz;
+    cpu_tpu_req_rs3_data_i  = 'bz;
+    cpu_tpu_resp_rdy_i      = 1'b1;
+endfunction
+
+task wait_cop_req_hsk();
     do {
         @(posedge clk);
-    } while(!issue_tinst_ready_o);
-    issue_tinst_valid_i <= 1'b0;
-    @(posedge clk);
+    } while(!(cpu_tpu_req_vld_i && cpu_tpu_req_rdy_o))
 endtask
 
-task issue_preloadc();
+task send_preloadc();
     @(posedge clk);
-    issue_tinst_valid_i <= 1'b1;
-    issue_tinst_type_i  <= `TINST_TYPE_PRELOADC;
-    issue_tinst_addr0_i <= $random();
-    wait_issue_hsk();
+    cpu_tpu_req_vld_i <= 1'b1;
+    cpu_tpu_req_insn_i <= {12'b0, 5'b00000, 3'b001, 5'b00000, 7'b0101011};
+    cpu_tpu_req_rs1_data_i <= $random();
+    cpu_tpu_req_rs2_data_i <= $random();
+    cpu_tpu_req_rs3_data_i <= $random();
+    wait_cop_req_hsk();
 endtask
 
-task issue_preloada();
+task send_preloada();
     @(posedge clk);
-    issue_tinst_valid_i <= 1'b1;
-    issue_tinst_type_i  <= `TINST_TYPE_PRELOADA;
-    issue_tinst_addr0_i <= $random();
-    wait_issue_hsk();
+    cpu_tpu_req_vld_i <= 1'b1;
+    cpu_tpu_req_insn_i <= {12'b0, 5'b00000, 3'b100, 5'b00000, 7'b0101011};
+    cpu_tpu_req_rs1_data_i <= $random();
+    cpu_tpu_req_rs2_data_i <= $random();
+    cpu_tpu_req_rs3_data_i <= 'b0;
+    wait_cop_req_hsk();
 endtask
 
-task issue_tmma();
+task send_tmma();
     @(posedge clk);
-    issue_tinst_valid_i     <= 1'b1;
-    issue_tinst_type_i      <= `TINST_TYPE_TMMA;
-    issue_tinst_addr0_i     <= $random();
-    issue_tinst_addr1_i     <= $random();
-    issue_tinst_precision_i <= 'b0;
-    issue_tinst_acc_i       <= 'b0;
-    wait_issue_hsk();
+    cpu_tpu_req_vld_i <= 1'b1;
+    cpu_tpu_req_insn_i <= {12'b0, 5'b00000, 3'b010, 5'b00000, 7'b0101011};
+    cpu_tpu_req_rs1_data_i <= $random();
+    cpu_tpu_req_rs2_data_i <= $random();
+    cpu_tpu_req_rs3_data_i <= 'b0;
+    wait_cop_req_hsk();
 endtask
 
-task issue_poststorec();
+task send_poststorec();
     @(posedge clk);
-    issue_tinst_valid_i <= 1'b1;
-    issue_tinst_type_i  <= `TINST_TYPE_POSTSTOREC;
-    issue_tinst_addr0_i <= $random();
+    cpu_tpu_req_vld_i <= 1'b1;
+    cpu_tpu_req_insn_i <= {12'b0, 5'b00000, 3'b011, 5'b00000, 7'b0101011};
+    cpu_tpu_req_rs1_data_i <= $random();
+    cpu_tpu_req_rs2_data_i <= $random();
+    cpu_tpu_req_rs3_data_i <= $random();
+    wait_cop_req_hsk();
 endtask
 
 // tinst
@@ -135,27 +125,5 @@ initial begin
     repeat(10) @(posedge clk);
 end
 
-// rd channel
-
-initial begin
-    sarray_ar_ready_i = 1'b1;
-    forever begin
-        @(posedge clk);
-        sarray_r_valid_i <= 1'b0;
-        if(ar_q.size()) begin
-            sarray_r_valid_i <= 1'b1;
-            sarray_r_data_i <= $random();
-            ar_q.pop_front();
-        end
-        if(sarray_ar_valid_o & sarray_ar_ready_i)
-            ar_q.push_back(1);
-    end
-end
-
-// w channel
-
-initial begin
-    sarray_aw_ready_i = 1'b1;
-end
 
 endmodule

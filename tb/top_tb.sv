@@ -115,13 +115,13 @@ endtask
 // tinst
 initial begin
     #5000;
-    issue_preloadc();
+    send_preloadc();
     repeat(10) @(posedge clk);
-    issue_preloada();
+    send_preloada();
     repeat(10) @(posedge clk);
-    issue_tmma();
+    send_tmma();
     repeat(10) @(posedge clk);
-    issue_poststorec();
+    send_poststorec();
     repeat(10) @(posedge clk);
 end
 

@@ -1,0 +1,11 @@
+# 忽略 sim 目录下所有内容
+sim/*
+
+# 但保留 sim/Makefile
+!sim/Makefile
+
+# 忽略 sim 下的所有子目录及其内容
+sim/**/*
+
+# 特别保留 sim/Makefile（需要重复声明以确保优先级）
+!sim/Makefile

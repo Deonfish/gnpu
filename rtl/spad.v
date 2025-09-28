@@ -79,10 +79,10 @@ generate
 for(i=0; i<`SPAD_BANK_NUM; i=i+1) begin
 
     // 512B, 256B width
-    spad_bank u_spad #(
+    spad_bank #(
         .DATAWIDTH(`SPAD_BANK_DATA_WIDTH),
         .ADDRWIDTH(`SPAD_BANK_ADDR_WIDTH)
-    ) (
+    ) u_spad (
         .CLK(clk),
         .CEN(bank_cen[i]),
         .WEN(bank_wen[i]),

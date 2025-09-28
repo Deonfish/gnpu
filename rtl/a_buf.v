@@ -26,17 +26,17 @@ module a_buf_shift_reg(
 
 	always @(posedge clk) begin
 		if(shift_byte_mode) begin
-			buf_data[7:0]   <= right_input_data[7:0];
+			buf_data[7:0]   <= right_input_data_i[7:0];
 			buf_data[15:8]  <= buf_data[7:0];
 			buf_data[23:16] <= buf_data[15:8];
 			buf_data[31:24] <= buf_data[23:16];
 		end
 		else if(shift_2byte_mode) begin
-			buf_data[15:0]  <= right_input_data[15:0];
+			buf_data[15:0]  <= right_input_data_i[15:0];
 			buf_data[31:16] <= buf_data[15:0];
 		end
 		else if(shift_4byte_mode) begin
-			buf_data[31:0] <= right_input_data[31:0];
+			buf_data[31:0] <= right_input_data_i[31:0];
 		end
 		else if(shift_out_mode) begin
 			buf_data[31:0] <= down_input_data_i;
@@ -74,15 +74,15 @@ module a_buf(
 	wire [31:0] wr_a_buf_data_rearrenged[`SARRAY_H];
 	reg [0:0] rd_a_buf_id_r;
 
-	wire [2:0]		reg_shift_mode[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
-	wire [0:0]		reg_right_input_data_valid[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
-	wire [31:0]  	reg_right_input_data[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
-	wire [0:0]  	reg_left_output_data_valid[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
-	wire [31:0] 	reg_left_output_data[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
-	wire [0:0]   	reg_down_input_data_valid[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
-	wire [31:0]  	reg_down_input_data[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
-	wire [0:0]  	reg_up_output_data_valid[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
-	wire [31:0] 	reg_up_output_data[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
+	wire [2:0]		reg_i_shift_mode[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
+	wire [0:0]		reg_i_right_input_data_valid[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
+	wire [31:0]  	reg_i_right_input_data[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
+	wire [0:0]  	reg_o_left_output_data_valid[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
+	wire [31:0] 	reg_o_left_output_data[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
+	wire [0:0]   	reg_i_down_input_data_valid[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
+	wire [31:0]  	reg_i_down_input_data[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
+	wire [0:0]  	reg_o_up_output_data_valid[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
+	wire [31:0] 	reg_o_up_output_data[`A_BUF_NUM][`SARRAY_H][`SARRAY_H];
 
 	assign wr_1b = wr_a_buf_data_width_i[`TLOAD_DW_BYTE_IDX];
 	assign wr_2b = wr_a_buf_data_width_i[`TLOAD_DW_2BYTE_IDX];
@@ -100,7 +100,7 @@ end
 endgenerate
 
 generate
-for(id=0; id<`A_BUF_NUM; i=i+1) begin
+for(id=0; id<`A_BUF_NUM; id=id+1) begin
 for(i=0; i<`SARRAY_H; i=i+1) begin
 for(j=0; j<`SARRAY_H; j=j+1) begin
 
@@ -116,7 +116,7 @@ for(j=0; j<`SARRAY_H; j=j+1) begin
 		.down_input_data_i			(reg_i_down_input_data[id][i][j]),
 		.up_output_data_valid_o		(reg_o_up_output_data_valid[id][i][j]),
 		.up_output_data_o			(reg_o_up_output_data[id][i][j])
-	)
+	);
 
 	assign reg_i_shift_mode[id][i][j] = wr_a_buf_data_width_i;
 	
@@ -154,7 +154,7 @@ end
 
 generate
 for(j=0; j<`SARRAY_H; j=j+1) begin
-	assign rd_a_buf_ret_data_o[i*32+:32] = reg_o_up_output_data[rd_a_buf_id_r][0][j];
+	assign rd_a_buf_ret_data_o[j*32+:32] = reg_o_up_output_data[rd_a_buf_id_r][0][j];
 end
 endgenerate
 

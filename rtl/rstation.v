@@ -74,10 +74,10 @@ module rstation(
     assign push_tmma_inst = cpu_tpu_req_vld_i && cpu_tpu_req_rdy_o && 
         (cop_preloadc || cop_tmma || cop_poststorec || cop_preloada);
 
-    assign cop_tmma_type =  {`TINST_TYPE_WIDTH{cop_tmma}}`TINST_TYPE_TMMA |
-                            {`TINST_TYPE_WIDTH{cop_preloadc}}`TINST_TYPE_PRELOADC |
-                            {`TINST_TYPE_WIDTH{cop_poststorec}}`TINST_TYPE_POSTSTOREC |
-                            {`TINST_TYPE_WIDTH{cop_preloada}}`TINST_TYPE_PRELOADA;
+    assign cop_tmma_type =  {`TINST_TYPE_WIDTH{cop_tmma}}       & `TINST_TYPE_TMMA |
+                            {`TINST_TYPE_WIDTH{cop_preloadc}}   & `TINST_TYPE_PRELOADC |
+                            {`TINST_TYPE_WIDTH{cop_poststorec}} & `TINST_TYPE_POSTSTOREC |
+                            {`TINST_TYPE_WIDTH{cop_preloada}}   & `TINST_TYPE_PRELOADA;
     assign cop_tmma_data_width = `TLOAD_DATAW_WIDTH'b1 << cpu_tpu_req_rs3_data_i[1:0];
     assign cop_tmma_addr0 = cpu_tpu_req_rs1_data_i;
     assign cop_tmma_addr1 = cpu_tpu_req_rs2_data_i;

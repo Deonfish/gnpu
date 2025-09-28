@@ -67,9 +67,10 @@ function drv_reset();
 endfunction
 
 task wait_cop_req_hsk();
-    do {
+    do begin
         @(posedge clk);
-    } while(!(cpu_tpu_req_vld_i && cpu_tpu_req_rdy_o))
+    end 
+    while(!(cpu_tpu_req_vld_i && cpu_tpu_req_rdy_o));
 endtask
 
 task send_preloadc();
